@@ -1,0 +1,12 @@
+[Unit]
+Description=project backend service
+
+[Service]
+WorkingDirectory=/var/www/env/pname
+ExecStart=/usr/bin/mvn spring-boot:run  -Dspring-boot.run.arguments=--server.port=port -Dspring-boot.run.jvmArguments="-Xms256m -Xmx256m"
+
+User=ubuntu
+Group=ubunt
+u
+[Install]
+WantedBy=multi-user.target
