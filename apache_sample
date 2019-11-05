@@ -1,0 +1,33 @@
+<VirtualHost *:80>
+        ServerName domain
+
+        Redirect permanent / https://domain/
+</VirtualHost>
+
+  <VirtualHost *:443>
+        ServerAdmin dev@mpass.gr
+        ServerName domain
+
+        DocumentRoot frontend
+
+        RewriteEngine on
+        SSLProxyEngine on
+        SSLEngine On
+        SSLCertificateFile  /etc/letsencrypt/live/domain/fullchain.pem
+        SSLCertificateKeyFile  /etc/letsencrypt/live/domain/privkey.pem
+
+        Alias "/api" "backend"
+
+        <Directory /var/www/project>
+        Options +FollowSymLinks +MultiViews
+        AllowOverride All
+        Order allow,deny
+        Allow from all
+        Require all granted
+        </Directory>
+
+
+        ErrorLog ${APACHE_LOG_DIR}/domain-error.log
+        CustomLog ${APACHE_LOG_DIR}/domain-access.log combined
+  </VirtualHost>
+
