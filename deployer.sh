@@ -15,16 +15,30 @@ if [ $frontend == y ] ; then
       read -p 'Please provide the cloning repository for backend: ' frontendrepo
       read -p 'Will you use php? ' php
            if [ $php == y ] ; then
+                    installer="${installer}&& sudo apt-get install -y php-fpm php-curl php-bcmath php-intl php-json php-mbstring php-mysql php-soap php-xml php-zip"
                 read -p 'Will you use composer? ' composer
+                  if [ $composer == y ] ; then
+                    installer="${installer}composer "
+                  fi
                 read -p 'Will you use npm? ' npm
-            fi
-              read -p 'Will you use npm? ' npm
-            fi
+                if [ $npm == y ] ; then
+                  installer="${installer}npm nodejs && sudo npm -g install n && sudo npm -n latest"
+                fi
+      read -p 'Will you use npm? ' npm
+              if [ $npm == y ] ; then
+                installer="${installer}npm nodejs && sudo npm -g install n && sudo n latest"
+              fi
 read -p 'Will you use backend server? ' backend
   if [ $backend == y ] ; then
         read -p 'Will you use local java? ' java
-        read -p 'Please specify which java 8/11: ' javaversion
+              if [ $java == y ] ; then
+                read -p 'Please specify which java 8/11: ' javaversion
+                installer="${installer}&& sudo apt-get install openjdk-$javaversion-jdk maven
+              fi
         read -p 'Will you use npm? ' npm
+        if [ $npm == y ] ; then
+          installer="${installer}npm && sudo npm -g install n && sudo npm -n latest"
+        fi
         read -p 'Will you use local mysql? ' mysql
         printf " Example of repository: https://github.com/someuser/someproject.git\n"
         read -p 'Please provide the cloning repository for backend: ' backendrepo
