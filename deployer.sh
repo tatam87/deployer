@@ -2,28 +2,40 @@
 
 printf "Hello:\t\t$USER\n"
 
-user=$USER
 rsa=/home/$USER/.ssh/id_rsa
 
-printf " Please answer a few questions about the new deployment with y or n\n"
-
+printf "Please answer a few questions about the new deployment with y or n or else specified:\n"
+read -p 'Will it be prod or dev environenment? ' env
 read -p 'Will you use php? ' php
 read -p 'Will you use local mysql? ' mysql
+read -p 'Will you use local java? ' java
+	if [ $java == y ] ; then
+                read -p 'Please specify which java 8/11: ' javaversion
+        fi
+
 read -p 'Will you use new apache domain? ' apache
-read -p 'Please provide the domain to use? ' domain
-read -p 'Will you use backend? ' backend
+	if [ $apache == y ] ; then
+                read -p 'Please provide the domain? ' domain
+        fi
+
+read -p 'Will you use backend server? ' backend
 read -p 'Will you use frontend? ' frontend
 read -p 'Will you use cms? ' cms
-read -p 'Will you use proxy for backend? ' proxyb
+
 
 if [ $backend == y ] ; then
-		read -p 'please provide the cloning repository for backend? ' backendrepo
+		printf " Example of repository: https://github.com/someuser/someproject.git\n"
+		read -p 'Please provide the cloning repository for backend: ' backendrepo
+		read -p 'Whats the backend port? ' backendport
 	fi
 if [ $frontend == y ] ;	then
-		read -p 'please provide the cloning repository for backend? ' frontendrepo
+		printf " Example of repository: https://github.com/someuser/someproject.git\n"
+		read -p 'Please provide the cloning repository for backend: ' frontendrepo
 	fi
 if [ $cms == y ] ;   then
-                read -p 'please provide the cloning repository for backend? ' cmsrepo
+		printf " Example of repository: https://github.com/someuser/someproject.git\n"
+                read -p 'Please provide the cloning repository for backend: ' cmsrepo
+		read -p 'What is the cms alias? '  cmsalias
 	fi
 
 
