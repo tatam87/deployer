@@ -84,19 +84,19 @@ if [ $deployment == y ] ;   then
   fi
 case $repos in
     "front")
-      ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd /$ospath/$env/$pname/ git clone $frontendrepo"
+      ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd /$ospath/$env/$pname/ && git clone $frontendrepo"
     ;;
     "back")
-      ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd /$ospath/$env/$pname/ git clone $backendrepo"
+      ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd /$ospath/$env/$pname/ && git clone $backendrepo"
     ;;
     "cms")
-      ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd /$ospath/$env/$pname/ git clone $cmsrepo"
+      ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd /$ospath/$env/$pname/ && git clone $cmsrepo"
     ;;
     "frontback")
-      ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd /$ospath/$env/$pname/ git clone $frontendrepo && git clone $backendrepo"
+      ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd /$ospath/$env/$pname/ && git clone $frontendrepo && git clone $backendrepo"
     ;;
     "frontbackcms")
-      ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd /$ospath/$env/$pname/ git clone $frontendrepo && git clone $backendrepo && git clone $cmsrepo"
+      ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd /$ospath/$env/$pname/ git clone $frontendrepo && git clone $backendrepo && git clone $cmsrepo "
     ;;
     *)
   esac
