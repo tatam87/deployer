@@ -8,7 +8,7 @@
         ServerAdmin dev@mpass.gr
         ServerName domain
 
-        DocumentRoot frontend
+        DocumentRoot path
 
         RewriteEngine on
         SSLProxyEngine on
@@ -18,7 +18,7 @@
 
         Alias "/api" "backend"
 
-        <Directory /var/www/project>
+        <Directory path>
         Options +FollowSymLinks +MultiViews
         AllowOverride All
         Order allow,deny
@@ -30,4 +30,3 @@
         ErrorLog ${APACHE_LOG_DIR}/domain-error.log
         CustomLog ${APACHE_LOG_DIR}/domain-access.log combined
   </VirtualHost>
-
