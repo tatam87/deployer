@@ -6,6 +6,7 @@ apachios="sudo apt-get install -y apache2 && sudo a2enmod alias ssl headers prox
 rsa=/home/$USER/.ssh/id_rsa
 apasimple=apache_sample
 apaproxy=apache_backproxy_sample
+
 printf "Please answer a few questions about the new deployment with y or n:\n"
 read -p 'Please provide the environment type dev/stage/prod :' env
 read -p 'What is the project name? ' pname
@@ -19,6 +20,16 @@ if [ $frontend == y ] ; then
       read -p 'Please provide the cloning repository for frontend: ' frontendrepo
       frontdir=`echo $frontendrepo | rev | cut -d / -f1 | rev|cut -d . -f1`
       read -e -i "$env" -p "Please provide the branch: "  fbranch
+      read -e -i "y" -p 'Will you use npm? ' npm
+        if [ $npm == y ] ; then
+          installer="${installer} && sudo apt-get install -y npm nodejs && sudo npm -g install n && sudo n latest && sudo npm -g install yarn"
+        fi
+      read -e -i "y" -p 'Will you use yarn for frontend? ' yarnf
+
+fi
+read -e -i "y" -p 'Will you use backend server? ' backend
+  if [ $backend == y ] ; then
+      repos="${repos}back"
       read -e -i "y" -p 'Will you use php? ' php
            if [ $php == y ] ; then
                     installer="${installer}&& sudo apt-get install -y php-fpm php-curl php-bcmath php-intl php-json php-mbstring php-mysql php-soap php-xml php-zip"
@@ -26,26 +37,20 @@ if [ $frontend == y ] ; then
                   if [ "$composer" == y ] ; then
                     installer="${installer} composer "
                   fi
-            read -e -i "y" -p 'Will you use npm? ' npm
-              if [ $npm == y ] ; then
-                installer="${installer} && sudo apt-get install -y npm nodejs && sudo npm -g install n && sudo n latest"
-              fi
-	fi
-fi
-read -e -i "y" -p 'Will you use backend server? ' backend
-  if [ $backend == y ] ; then
-      repos="${repos}back"
+
         read -e -i "y" -p 'Will you use local java? ' java
               if [ $java == y ] ; then
                 read -e -i "11" -p 'Please specify which java 8/11: ' javaversion
                 installer="${installer} && sudo apt-get install -y openjdk-$javaversion-jdk maven"
               fi
+  fi
 	      if [ "$npm" != "y" ] ; then
         read -e -i "y" -p 'Will you use npm? ' npm
 
         if [ $npm == y ] ; then
-          installer="${installer} && sudo apt-get install -y npm && sudo npm -g install n && sudo npm -n latest"
+          installer="${installer} && sudo apt-get install -y npm && sudo npm -g install n && sudo n latest && sudo npm -g install yarn"
         fi
+        read -e -i "y" -p 'Will you use yarn for backend? ' yarnb
 	fi
         read -e -i "y" -p 'Will you use local mysql? ' mysql
         if [ $mysql == y ] ; then
@@ -79,15 +84,18 @@ path="\/var\/www\/$env\/$pname\/"
 ospath="/var/www/"
 servicepath="/etc/systemd/system/$env-$pname.service"
 
-cat apache_sample | sed "s/domain/$domain/; s/path/$path/g" > $domain.conf
+cat apache_sample | sed "s/domain/$domain/; s/backend/$path\/$backdir/; s/path/$path/g" > $domain.conf
+cat apache_backproxy_sample | sed "s/domain/$domain/g; s/backendport/$backendport/; s/path/$path/g" > $domainp.conf
 if [ $deployment == y ] ;   then
- ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "$apachios && $installer && sudo mkdir -p $ospath/$env/$pname && sudo chown $remoteuser:www-date -R $ospath/$env && sudo chmod -R 775 $$ospath/$env/"
+ ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "$apachios && $installer && sudo mkdir -p /$ospath/$env/$pname && sudo chown -R $remoteuser:www-date /$ospath/$env && sudo chmod -R 775 /$ospath/$env/"
   else
-    ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "$installer  && sudo mkdir -p $ospath/$env/$pname && sudo chown $remoteuser:www-data -R $ospath/$env/ && sudo chmod -R 775 $ospath/$env/ "
+    ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "$installer  && sudo mkdir -p $ospath/$env/$pname && sudo chown $remoteuser:www-data -R /$ospath/$env/ && sudo chmod -R 775 /$ospath/$env/ "
+
   fi
 case $repos in
     "front")
       ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd /$ospath/$env/$pname/ && git clone $frontendrepo && cd $frontdir && git checkout $fbranch"
+      ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "sudo cat  | sudo tee /etc/apache2/sites-available/$domain.conf "
     ;;
     "back")
       ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd /$ospath/$env/$pname/ && git clone $backendrepo && cd $backdir && git checkout $bbranch"
@@ -103,4 +111,3 @@ case $repos in
     ;;
     *)
   esac
-rm $domain.conf
