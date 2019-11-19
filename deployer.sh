@@ -95,8 +95,8 @@ if [ $deployment == y ] ;   then
     ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "$installer  && sudo mkdir -p $ospath/$env/$pname && sudo chown $remoteuser:www-data -R /$ospath/$env/ && sudo chmod -R 775 /$ospath/$env/ "
 
   fi
-case $repos in
-    "front")
+ [[ $repos =~ .*front* ]] && \
+{
       ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd /$ospath/$env/$pname/ && git clone $frontendrepo && cd $frontdir && git checkout $fbranch"
         if [ $yarnf == y ] ; then
             ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd /$ospath/$env/$pname/$frontdir/ && sh deploy-$fbranch.sh
@@ -104,8 +104,9 @@ case $repos in
       scp -P$sshport $domain.conf $remoteuser@$domain:~/
       ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "sudo mv $domain.conf /etc/apache2/sites-available/ && sudo a2nsite $domain && sudo systemctl reload apache2"
       rm $domain.conf
-    ;;
-    "back")
+}
+     [[ $repos =~ .*back* ]] && \
+     {
       ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd /$ospath/$env/$pname/ && git clone $backendrepo && cd $backdir && git checkout $bbranch"
       scp -P$sshport $pname.service  $remoteuser@$domain:~/
       ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "sudo mv $pname.service /etc/systemd/system/ && sudo systemctl start $pname"
@@ -113,9 +114,8 @@ case $repos in
         if  [ $mysql == y ] ; then
           read -sp 'Please provide the root mysql password you have or created on deployment: ' rootpasswd
           ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "mysql -uroot -p${rootpasswd} -e "CREATE USER ${mysqluser}@localhost IDENTIFIED BY '${sqluserpass}'; mysql -uroot -p${rootpasswd} -e CREATE DATABASE $bdshceme; mysql -uroot -p${rootpasswd} -e GRANT ALL PRIVILEGES ON ${bdshceme}.* TO '${mysqluser}'@'localhost'; mysql -uroot -p${rootpasswd} -e FLUSH PRIVILEGES;"
-     ;;
-    "cms")
+     }
+     [[ $repos =~ .*cms* ]] && \
+     {
       ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd /$ospath/$env/$pname/ && git clone $cmsrepo && cd $cmsdir && git checkout $cbranch"
-    ;;
-    *)
-  esac
+    }
