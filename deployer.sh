@@ -12,6 +12,7 @@ read -p 'Please provide the environment type dev/stage/prod :' env
 read -p 'What is the project name? ' pname
 read -p 'Please provide the domain? ' domain
 read -e -i "y" -p 'Is that the first time deployng on this server? ' deployment
+echo "----------------------------"
 read -e -i "y" -p 'Will you use frontend? ' frontend
 
 if [ $frontend == y ] ; then
@@ -27,6 +28,7 @@ if [ $frontend == y ] ; then
       read -e -i "y" -p 'Will you use yarn for frontend? ' yarnf
 
 fi
+echo "----------------------------"
 read -e -i "y" -p 'Will you use backend server? ' backend
   if [ $backend == y ] ; then
       repos="${repos}back"
@@ -65,7 +67,7 @@ read -e -i "y" -p 'Will you use backend server? ' backend
         read -e -i "$env" -p "Please provide the branch: "  bbranch
         read -p 'Whats the backend port? ' backendport
     fi
-
+echo "----------------------------"
 read -e -i "n" -p 'Will you use cms? ' cms
   if [ $cms == y ] ;   then
                 repos="${repos}cms"
@@ -86,8 +88,9 @@ servicepath="/etc/systemd/system/$env-$pname.service"
 
 cat apache_sample | sed "s/domain/$domain/; s/backend/$path\/$backdir/; s/path/$path/g" > $domain.conf
 cat apache_backproxy_sample | sed "s/domain/$domain/g; s/backendport/$backendport/; s/path/$path/g" > $domainp.conf
+cat service_sample | sed "s/project/$pname/; s/env/$env/; s/pname/$pname; s/port/$backendport" > $pname.service
 if [ $deployment == y ] ;   then
- ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "$apachios && $installer && sudo mkdir -p /$ospath/$env/$pname && sudo chown -R $remoteuser:www-date /$ospath/$env && sudo chmod -R 775 /$ospath/$env/"
+ ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "$apachios && $installer && sudo mkdir -p /$ospath/$env/$pname && sudo chown -R $remoteuser:www-data /$ospath/$env && sudo chmod -R 775 /$ospath/$env/"
   else
     ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "$installer  && sudo mkdir -p $ospath/$env/$pname && sudo chown $remoteuser:www-data -R /$ospath/$env/ && sudo chmod -R 775 /$ospath/$env/ "
 
@@ -95,19 +98,24 @@ if [ $deployment == y ] ;   then
 case $repos in
     "front")
       ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd /$ospath/$env/$pname/ && git clone $frontendrepo && cd $frontdir && git checkout $fbranch"
-      ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "sudo cat  | sudo tee /etc/apache2/sites-available/$domain.conf "
+        if [ $yarnf == y ] ; then
+            ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd /$ospath/$env/$pname/$frontdir/ && sh deploy-$fbranch.sh
+        fi
+      scp -P$sshport $domain.conf $remoteuser@$domain:~/
+      ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "sudo mv $domain.conf /etc/apache2/sites-available/ && sudo a2nsite $domain && sudo systemctl reload apache2"
+      rm $domain.conf
     ;;
     "back")
       ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd /$ospath/$env/$pname/ && git clone $backendrepo && cd $backdir && git checkout $bbranch"
-    ;;
+      scp -P$sshport $pname.service  $remoteuser@$domain:~/
+      ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "sudo mv $pname.service /etc/systemd/system/ && sudo systemctl start $pname"
+      rm $pname.service
+        if  [ $mysql == y ] ; then
+          read -sp 'Please provide the root mysql password you have or created on deployment: ' rootpasswd
+          ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "mysql -uroot -p${rootpasswd} -e "CREATE USER ${mysqluser}@localhost IDENTIFIED BY '${sqluserpass}'; mysql -uroot -p${rootpasswd} -e CREATE DATABASE $bdshceme; mysql -uroot -p${rootpasswd} -e GRANT ALL PRIVILEGES ON ${bdshceme}.* TO '${mysqluser}'@'localhost'; mysql -uroot -p${rootpasswd} -e FLUSH PRIVILEGES;"
+     ;;
     "cms")
       ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd /$ospath/$env/$pname/ && git clone $cmsrepo && cd $cmsdir && git checkout $cbranch"
-    ;;
-    "frontback")
-      ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd /$ospath/$env/$pname/ && git clone $frontendrepo && git clone $backendrepo"
-    ;;
-    "frontbackcms")
-      ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd /$ospath/$env/$pname/ git clone $frontendrepo && git clone $backendrepo && git clone $cmsrepo "
     ;;
     *)
   esac
