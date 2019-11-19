@@ -88,7 +88,7 @@ servicepath="/etc/systemd/system/$env-$pname.service"
 
 cat apache_sample | sed "s/domain/$domain/; s/backend/$path\/$backdir/; s/path/$path/g" > $domain.conf
 cat apache_backproxy_sample | sed "s/domain/$domain/g; s/backendport/$backendport/; s/path/$path/g" > $domainp.conf
-cat service_sample | sed "s/project/$pname/; s/env/$env/; s/pname/$pname; s/port/$backendport" > $pname.service
+cat service_sample | sed "s/project/$pname/; s/env/$env/; s/pname/$pname/; s/port/$backendport/g" > $pname.service
 if [ $deployment == y ] ;   then
  ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "$apachios && $installer && sudo mkdir -p /$ospath/$env/$pname && sudo chown -R $remoteuser:www-data /$ospath/$env && sudo chmod -R 775 /$ospath/$env/"
   else
@@ -114,6 +114,7 @@ if [ $deployment == y ] ;   then
         if  [ $mysql == y ] ; then
           read -sp 'Please provide the root mysql password you have or created on deployment: ' rootpasswd
           ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "mysql -uroot -p${rootpasswd} -e "CREATE USER ${mysqluser}@localhost IDENTIFIED BY '${sqluserpass}'; mysql -uroot -p${rootpasswd} -e CREATE DATABASE $bdshceme; mysql -uroot -p${rootpasswd} -e GRANT ALL PRIVILEGES ON ${bdshceme}.* TO '${mysqluser}'@'localhost'; mysql -uroot -p${rootpasswd} -e FLUSH PRIVILEGES;"
+
      }
      [[ $repos =~ .*cms* ]] && \
      {
