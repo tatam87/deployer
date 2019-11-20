@@ -102,13 +102,13 @@ fi
 cat apache_sample | sed "s/domain/$domain/g; s/backend/$path\/$backdir/; s/path/$path/g" > $domain.conf
 
 if [ $deployment == y ] ;   then
- ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "$apachios && $installer && sudo mkdir -p /$ospath/$pname/$env && sudo chown -R $remoteuser:www-data /$ospath/$pname/ && sudo chmod -R 775 /$ospath/$pname/"
+ ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "$apachios && $installer && sudo mkdir -p $ospath/$pname/$env && sudo chown -R $remoteuser:$remoteuser $ospath/$pname/ && sudo chmod -R 775 /$ospath/$pname/"
 fi
 
-ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "$installer  && sudo mkdir -p $ospath/$pname/$env && sudo chown $remoteuser:www-data -R /$ospath/$pname/ && sudo chmod -R 775 /$ospath/$pname/"
+ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "$installer  && sudo mkdir -p $ospath/$pname/$env && sudo chown $remoteuser:$remoteuser -R $ospath/$pname/ && sudo chmod -R 775 $ospath/$pname/"
 
 if [[ $repos =~ "front" ]] ;   then
-    ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd /$ospath/$pname/$env/ && git clone $frontendrepo && cd $frontdir && git checkout $fbranch"
+    ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd $ospath/$pname/$env/ && git clone $frontendrepo && cd $frontdir && git checkout $fbranch"
       if [ $yarnf == y ] ; then
             ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd /$ospath/$pname/$env/$frontdir/"
       fi
@@ -117,21 +117,21 @@ if [[ $repos =~ "front" ]] ;   then
 fi
 
 if [[ $repos =~ "back" ]] ; then
-      ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd /$ospath/$pname/$env/ && git clone $backendrepo && cd $backdir && git checkout $bbranch"
+      ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd $ospath/$pname/$env/ && git clone $backendrepo && cd $backdir && git checkout $bbranch"
       scp -P$sshport $pname.service  $remoteuser@$domain:~/
       ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "sudo mv $pname.service /etc/systemd/system/ && sudo systemctl daemon-reload && sudo systemctl start $pname"
 
         if  [ $mysql == y ] ; then
           read -sp 'Please provide the root mysql password you have or created on deployment: ' rootpasswd
-          ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "mysql -uroot -p${rootpasswd}  <<EOF
-          CREATE DATABASE $bdshceme
-          CREATE USER ${mysqluser}@localhost IDENTIFIED BY '${sqluserpass}'
-          GRANT ALL PRIVILEGES ON ${bdshceme}.* TO '${mysqluser}'@'localhost'
+          ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "mysql -uroot -p${rootpasswd}  <<-EOF
+          CREATE DATABASE $bdshceme;
+          CREATE USER $mysqluser@localhost IDENTIFIED BY $sqluserpass;
+          GRANT ALL PRIVILEGES ON $bdshceme.* TO $mysqluser@localhost;
           FLUSH PRIVILEGES;
           EOF"
         fi
 fi
 
 if [[ $repos =~ "cms" ]] ; then
-      ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd /$ospath/$pname/$env/ && git clone $cmsrepo && cd $cmsdir && git checkout $cbranch"
+      ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd $ospath/$pname/$env/ && git clone $cmsrepo && cd $cmsdir && git checkout $cbranch"
 fi
