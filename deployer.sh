@@ -113,13 +113,15 @@ if [[ $repos =~ "front" ]] ;   then
             ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd $ospath/$pname/$env/$frontdir/"
       fi
     scp -P$sshport $domain.conf $remoteuser@$domain:~/
-    ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "sudo mv $domain.conf /etc/apache2/sites-available/ && sudo a2ensite $domain && sudo systemctl reload apache2"
+    ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=676}" "sudo mv $domain.conf /etc/apache2/sites-available/ && sudo a2ensite $domain && sudo systemctl reload apache2"
+    rm $domain.conf
 fi
 
 if [[ $repos =~ "back" ]] ; then
       ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd $ospath/$pname/$env/ && git clone $backendrepo && cd $backdir && git checkout $bbranch"
       scp -P$sshport $pname.service  $remoteuser@$domain:~/
       ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "sudo mv $pname.service /etc/systemd/system/ && sudo systemctl daemon-reload && sudo systemctl start $pname"
+      rm $pname.service
 
         if  [ $mysql == y ] ; then
           read -sp 'Please provide the root mysql password you have or created on deployment: ' rootpasswd
