@@ -1,6 +1,6 @@
 #!/bin/bash
 
-printf "Hello:\t\t$USER\n"
+printf "Hello: $USER\n"
 installer="sudo apt-get update "
 apachios="sudo apt-get install -y apache2 && sudo a2enmod alias ssl headers proxy proxy_fcgi proxy_http proxy_html rewrite xml2enc && sudo systemctl restart apache2 && sudo add-apt-repository ppa:certbot/certbot && sudo apt-get update && sudo apt-get install -y certbot python-certbot-apache "
 rsa=/home/$USER/.ssh/id_rsa
@@ -39,13 +39,13 @@ read -e -i "y" -p 'Will you use backend server? ' backend
                   if [ "$composer" == y ] ; then
                     installer="${installer} composer "
                   fi
-
+          fi
+ fi
         read -e -i "y" -p 'Will you use local java? ' java
               if [ $java == y ] ; then
                 read -e -i "11" -p 'Please specify which java 8/11: ' javaversion
                 installer="${installer} && sudo apt-get install -y openjdk-$javaversion-jdk maven"
               fi
-  fi
 	      if [ "$npm" != "y" ] ; then
         read -e -i "y" -p 'Will you use npm? ' npm
 
@@ -58,7 +58,7 @@ read -e -i "y" -p 'Will you use backend server? ' backend
         if [ $mysql == y ] ; then
           installer="${installer} && sudo apt-get install -y mysql-server"
           read -p 'Please provide sql user: ' mysqluser
-          read -p 'Please provide user password: ' sqluserpass
+          read -sp 'Please provide user password: ' sqluserpass
           read -p 'Please provide the database name: ' bdshceme
         fi
         printf " Example of repository: https://github.com/someuser/someproject.git\n"
@@ -66,7 +66,7 @@ read -e -i "y" -p 'Will you use backend server? ' backend
         backdir=`echo $backendrepo | rev | cut -d / -f1 | rev|cut -d . -f1`
         read -e -i "$env" -p "Please provide the branch: "  bbranch
         read -p 'Whats the backend port? ' backendport
-    fi
+
 echo "----------------------------"
 read -e -i "n" -p 'Will you use cms? ' cms
   if [ $cms == y ] ;   then
@@ -82,41 +82,40 @@ read -e -i "n" -p 'Will you use cms? ' cms
 read -e -i "ubuntu" -p 'Please provide the ssh user to connect: ' remoteuser
 read -e -i "6776" -p 'Please provide the ssh port to use: ' sshport
 
-path="\/var\/www\/$env\/$pname\/"
+path="\/var\/www\/$pname\/$env\/"
 ospath="/var/www/"
-servicepath="/etc/systemd/system/$env-$pname.service"
-
-cat apache_sample | sed "s/domain/$domain/; s/backend/$path\/$backdir/; s/path/$path/g" > $domain.conf
-cat apache_backproxy_sample | sed "s/domain/$domain/g; s/backendport/$backendport/; s/path/$path/g" > $domainp.conf
-cat service_sample | sed "s/project/$pname/; s/env/$env/; s/pname/$pname/; s/port/$backendport/g" > $pname.service
+servicepath="/etc/systemd/system/$pname-$env.service"
+if [ $backend == y ] ;   then
+  cat apache_backproxy_sample | sed "s/domain/$domain/g; s/backendport/$backendport/g; s/path/$path/g" > $domain.conf
+  cat service_sample | sed "s/project/$pname/g; s/dir/$backdir/g; s/env/$env/g; s/pname/$pname/g; s/port/$backendport/g" > $pname.service
+fi
+cat apache_sample | sed "s/domain/$domain/g; s/backend/$path\/$backdir/; s/path/$path/g" > $domain.conf
 if [ $deployment == y ] ;   then
- ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "$apachios && $installer && sudo mkdir -p /$ospath/$env/$pname && sudo chown -R $remoteuser:www-data /$ospath/$env && sudo chmod -R 775 /$ospath/$env/"
-  else
-    ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "$installer  && sudo mkdir -p $ospath/$env/$pname && sudo chown $remoteuser:www-data -R /$ospath/$env/ && sudo chmod -R 775 /$ospath/$env/ "
+ ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "$apachios && $installer && sudo mkdir -p /$ospath/$pname/$env && sudo chown -R $remoteuser:www-data /$ospath/$pname/ && sudo chmod -R 775 /$ospath/$pname/"
+fi
+    ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "$installer  && sudo mkdir -p $ospath/$pname/$env && sudo chown $remoteuser:www-data -R /$ospath/$pname/ && sudo chmod -R 775 /$ospath/$pname/"
 
-  fi
- [[ $repos =~ .*front* ]] && \
-{
-      ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd /$ospath/$env/$pname/ && git clone $frontendrepo && cd $frontdir && git checkout $fbranch"
+    if [[ $repos =~ "front" ]] ;   then
+
+      ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd /$ospath/$pname/$env/ && git clone $frontendrepo && cd $frontdir && git checkout $fbranch"
         if [ $yarnf == y ] ; then
-            ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd /$ospath/$env/$pname/$frontdir/ && sh deploy-$fbranch.sh
+            ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd /$ospath/$pname/$env/$frontdir/
         fi
       scp -P$sshport $domain.conf $remoteuser@$domain:~/
-      ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "sudo mv $domain.conf /etc/apache2/sites-available/ && sudo a2nsite $domain && sudo systemctl reload apache2"
-      rm $domain.conf
-}
-     [[ $repos =~ .*back* ]] && \
-     {
-      ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd /$ospath/$env/$pname/ && git clone $backendrepo && cd $backdir && git checkout $bbranch"
+      ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "sudo mv $domain.conf /etc/apache2/sites-available/ && sudo a2ensite $domain && sudo systemctl reload apache2"
+
+fi
+if [[ $repos =~ "back" ]] ; then
+      ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd /$ospath/$pname/$env/ && git clone $backendrepo && cd $backdir && git checkout $bbranch"
       scp -P$sshport $pname.service  $remoteuser@$domain:~/
       ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "sudo mv $pname.service /etc/systemd/system/ && sudo systemctl start $pname"
-      rm $pname.service
+
         if  [ $mysql == y ] ; then
           read -sp 'Please provide the root mysql password you have or created on deployment: ' rootpasswd
           ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "mysql -uroot -p${rootpasswd} -e "CREATE USER ${mysqluser}@localhost IDENTIFIED BY '${sqluserpass}'; mysql -uroot -p${rootpasswd} -e CREATE DATABASE $bdshceme; mysql -uroot -p${rootpasswd} -e GRANT ALL PRIVILEGES ON ${bdshceme}.* TO '${mysqluser}'@'localhost'; mysql -uroot -p${rootpasswd} -e FLUSH PRIVILEGES;"
+        fi
+fi
+if [[ $repos =~ "cms" ]] ; then
 
-     }
-     [[ $repos =~ .*cms* ]] && \
-     {
-      ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd /$ospath/$env/$pname/ && git clone $cmsrepo && cd $cmsdir && git checkout $cbranch"
-    }
+      ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd /$ospath/$pname/$env/ && git clone $cmsrepo && cd $cmsdir && git checkout $cbranch"
+    fi
