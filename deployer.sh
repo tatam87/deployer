@@ -123,13 +123,12 @@ if [[ $repos =~ "back" ]] ; then
 
         if  [ $mysql == y ] ; then
           read -sp 'Please provide the root mysql password you have or created on deployment: ' rootpasswd
-          ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" mysql -uroot -p${rootpasswd}
-          <<EOF
-          CREATE USER ${mysqluser}@localhost IDENTIFIED BY ${sqluserpass};
-          CREATE DATABASE $bdshceme;
-          GRANT ALL PRIVILEGES ON ${bdshceme}.* TO '${mysqluser}'@'localhost';
-          mysql -uroot -p${rootpasswd} -e "FLUSH PRIVILEGES;
-          EOF
+          ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "mysql -uroot -p${rootpasswd}  <<EOF
+          CREATE DATABASE $bdshceme
+          CREATE USER ${mysqluser}@localhost IDENTIFIED BY '${sqluserpass}'
+          GRANT ALL PRIVILEGES ON ${bdshceme}.* TO '${mysqluser}'@'localhost'
+          FLUSH PRIVILEGES;
+          EOF"
         fi
 fi
 
