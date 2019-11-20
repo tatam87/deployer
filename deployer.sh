@@ -73,7 +73,7 @@ read -e -i "y" -p 'Will you use backend server? ' backend
   read -p 'Please provide the cloning repository for backend: ' backendrepo
   backdir=`echo $backendrepo | rev | cut -d / -f1 | rev|cut -d . -f1`
   read -e -i "$env" -p "Please provide the branch: "  bbranch
-  read -p 'Whats the backend port? ' backendport
+  read -e -i "5000" -p 'Whats the backend port? ' backendport
 
 echo "----------------------------"
 
@@ -110,7 +110,7 @@ ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "$installer  && sud
 if [[ $repos =~ "front" ]] ;   then
     ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd $ospath/$pname/$env/ && git clone $frontendrepo && cd $frontdir && git checkout $fbranch"
       if [ $yarnf == y ] ; then
-            ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd /$ospath/$pname/$env/$frontdir/"
+            ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd $ospath/$pname/$env/$frontdir/"
       fi
     scp -P$sshport $domain.conf $remoteuser@$domain:~/
     ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "sudo mv $domain.conf /etc/apache2/sites-available/ && sudo a2ensite $domain && sudo systemctl reload apache2"
@@ -128,6 +128,7 @@ if [[ $repos =~ "back" ]] ; then
           CREATE USER $mysqluser@localhost IDENTIFIED BY $sqluserpass;
           GRANT ALL PRIVILEGES ON $bdshceme.* TO $mysqluser@localhost;
           FLUSH PRIVILEGES;
+          exit
           EOF"
         fi
 fi
