@@ -16,7 +16,7 @@
         SSLCertificateFile  /etc/letsencrypt/live/domain/fullchain.pem
         SSLCertificateKeyFile  /etc/letsencrypt/live/domain/privkey.pem
 
-        Alias "/api" "backend"
+        Alias "/api" "backendurl"
 
         <Directory path>
         Options +FollowSymLinks +MultiViews

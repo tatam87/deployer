@@ -3,7 +3,7 @@ Description=project env backend service
 
 [Service]
 WorkingDirectory=/var/www/pname/env/dir/
-ExecStart=/usr/bin/mvn spring-boot:run  -Dspring-boot.run.arguments=--server.port=port -Dspring-boot.run.jvmArguments="-Xms256m -Xmx256m"
+ExecStart=/usr/bin/mvn spring-boot:run  -Dspring-boot.run.arguments=--server.port=portc -Dspring-boot.run.jvmArguments="-Xms256m -Xmx256m"
 
 User=ubuntu
 Group=ubuntu
