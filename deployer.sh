@@ -119,11 +119,17 @@ fi
 if [[ $repos =~ "back" ]] ; then
       ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd /$ospath/$pname/$env/ && git clone $backendrepo && cd $backdir && git checkout $bbranch"
       scp -P$sshport $pname.service  $remoteuser@$domain:~/
-      ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "sudo mv $pname.service /etc/systemd/system/ && sudo systemctl start $pname"
+      ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "sudo mv $pname.service /etc/systemd/system/ && sudo systemctl daemon-reload && sudo systemctl start $pname"
 
         if  [ $mysql == y ] ; then
           read -sp 'Please provide the root mysql password you have or created on deployment: ' rootpasswd
-          ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "mysql -uroot -p${rootpasswd} -e CREATE USER ${mysqluser}@localhost IDENTIFIED BY '${sqluserpass}'; mysql -uroot -p${rootpasswd} -e CREATE DATABASE $bdshceme; mysql -uroot -p${rootpasswd} -e GRANT ALL PRIVILEGES ON ${bdshceme}.* TO '${mysqluser}'@'localhost'; mysql -uroot -p${rootpasswd} -e FLUSH PRIVILEGES;"
+          ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" mysql -uroot -p${rootpasswd}
+          <<EOF
+          CREATE USER ${mysqluser}@localhost IDENTIFIED BY ${sqluserpass};
+          CREATE DATABASE $bdshceme;
+          GRANT ALL PRIVILEGES ON ${bdshceme}.* TO '${mysqluser}'@'localhost';
+          mysql -uroot -p${rootpasswd} -e "FLUSH PRIVILEGES;
+          EOF
         fi
 fi
 
