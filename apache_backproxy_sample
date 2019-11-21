@@ -17,7 +17,7 @@
         SSLCertificateKeyFile  /etc/letsencrypt/live/domain/privkey.pem
 
         Alias "/api" "backend"
-	
+
         <Directory /var/www/project>
         Options +FollowSymLinks +MultiViews
         AllowOverride All
@@ -34,4 +34,3 @@
         ErrorLog ${APACHE_LOG_DIR}/domain-error.log
         CustomLog ${APACHE_LOG_DIR}/domain-access.log combined
   </VirtualHost>
-

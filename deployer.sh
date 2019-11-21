@@ -43,11 +43,11 @@ read -e -i "y" -p 'Will you use backend server? ' backend
       repos="${repos}back"
       read -e -i "n" -p 'Will you use php? ' php
            if [ $php == y ] ; then
-                installer="${installer}&& sudo apt-get install -y php-fpm php-curl php-bcmath php-intl php-json php-mbstring php-mysql php-soap php-xml php-zip"
-                read -e -i "y" -p 'Will you use composer? ' composer
-                  if [ "$composer" == y ] ; then
-                    installer="${installer} composer "
-                  fi
+              installer="${installer}&& sudo apt-get install -y php-fpm php-curl php-bcmath php-intl php-json php-mbstring php-mysql php-soap php-xml php-zip"
+              read -e -i "y" -p 'Will you use composer? ' composer
+                if [ "$composer" == y ] ; then
+                  installer="${installer} composer "
+                fi
           fi
  fi
 
@@ -57,19 +57,12 @@ read -e -i "y" -p 'Will you use backend server? ' backend
     read -e -i "11" -p 'Please specify which java 8/11: ' javaversion
     installer="${installer} && sudo apt-get install -y openjdk-$javaversion-jdk maven"
     release=`ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "hostnamectl | grep Operating | sed 's/[^0-9]//g' | head -c 2"`
-    echo $release
+
       if [[ $javaversion == "11" && $release == "16" ]]; then
         ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "sudo add-apt-repository ppa:linuxuprising/java && sudo apt-get update"
       fi
+    read -e -i "prod" -p 'Please provide the spring profile: ' spring_profile
   fi
-
-	if [ "$npm" != "y" ] ; then
-        read -e -i "y" -p 'Will you use npm? ' npm
-        if [ $npm == y ] ; then
-          installer="${installer} && sudo apt-get install -y npm && sudo npm -g install n && sudo n latest && sudo npm -g install yarn"
-        fi
-  read -e -i "y" -p 'Will you use yarn for backend? ' yarnb
-	fi
 
   read -e -i "y" -p 'Will you use local mysql? ' mysql
     if [ $mysql == y ] ; then
@@ -104,12 +97,14 @@ ospath="/var/www/"
 if [ $backend == y ] ;   then
   cat apache_backproxy_sample | sed "s/domain/$domain/g; s/backendport/$backendport/g; s/path/$path/g" > $domain.conf
   cat service_sample | sed "s/project/$pname/g; s/dir/$backdir/g; s/env/$env/g; s/pname/$pname/g; s/portc/$backendport/g" > $pname.service
+else
+  cat apache_sample | sed "s/domain/$domain/g; s/backend/$path\/$backdir/; s/path/$path/g" > $domain.conf
 fi
 
 cat apache_sample | sed "s/domain/$domain/g; s/backend/$path\/$backdir/; s/path/$path/g" > $domain.conf
 
 if [ $deployment == y ] ;   then
- ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "$apachios && $installer && sudo mkdir -p $ospath/$pname/$env && sudo chown -R $remoteuser:$remoteuser $ospath/$pname/ && sudo chmod -R 775 /$ospath/$pname/"
+ ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "$apachios && $installer && sudo mkdir -p $ospath/$pname/$env && sudo chown -R $remoteuser:$remoteuser $ospath/$pname/ && sudo chmod -R 775 $ospath/$pname/"
 fi
 
 ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "$installer  && sudo mkdir -p $ospath/$pname/$env && sudo chown $remoteuser:$remoteuser -R $ospath/$pname/ && sudo chmod -R 775 $ospath/$pname/ && sudo certbot certonly --apache -d$domain"
@@ -125,7 +120,7 @@ if [[ $repos =~ "front" ]] ;   then
 fi
 
 if [[ $repos =~ "back" ]] ; then
-      ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd $ospath/$pname/$env/ && git clone $backendrepo && cd $backdir && git checkout $bbranch"
+      ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd $ospath/$pname/$env/ && git clone $backendrepo && cd $backdir && git checkout $bbranch && cat src/main/resources/application.yaml.dist | sed 's/database_name/$bdshceme/; s/database_ser/$mysqluser/; s/database_password/$sqluserpass/; s/spring_profile/$spring_profile/ > src/main/resources/application.yaml'"
       scp -P$sshport $pname.service  $remoteuser@$domain:~/
       ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "sudo mv $pname.service /etc/systemd/system/ && sudo systemctl daemon-reload && sudo systemctl start $pname"
       rm $pname.service
