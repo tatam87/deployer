@@ -1,7 +1,10 @@
 #!/bin/bash
 
-printf "Hello: $USER\n"
-
+printf "Hello $USER\n"
+printf "\n\033[0;33mBefore you start confirm tha A record for your domain exists and you have ssh access !\033[0m\n"
+printf "\n\033[0;33mThere will be a lot of ssh conections so we will make ssh agent to handle them, please provide the ssh passphrase.\033[0m\n"
+echo "----------------------------"
+ssh-agent && ssh-add
 installer="sudo apt-get update "
 apachios="sudo apt-get install -y apache2 && sudo a2enmod alias ssl headers proxy proxy_fcgi proxy_http proxy_html rewrite xml2enc && sudo systemctl restart apache2 && sudo add-apt-repository ppa:certbot/certbot && sudo apt-get update && sudo apt-get install -y certbot python-certbot-apache "
 rsa=/home/$USER/.ssh/id_rsa
@@ -9,10 +12,12 @@ rsa=/home/$USER/.ssh/id_rsa
 apasimple=apache_sample
 apaproxy=apache_backproxy_sample
 
-printf "Please answer a few questions about the new deployment with y or n:\n"
-read -p 'Please provide the environment type dev/stage/prod :' env
-read -p 'What is the project name? ' pname
-read -p 'Please provide the domain? ' domain
+printf "\n\033[0;33mPlease answer the questions for deployment with y or n or as suggested. \033[0m\n"
+read -e -i "master" -p 'Please provide the environment type dev/stage/prod: ' env
+read -e -i "someproject" -p 'What is the project name? ' pname
+read -e -i "test.test.com" -p 'Please provide the domain? ' domain
+read -e -i "ubuntu" -p 'Please provide the ssh user to connect: ' remoteuser
+read -e -i "6776" -p 'Please provide the ssh port to use: ' sshport
 read -e -i "y" -p 'Is that the first time deployng on this server? ' deployment
 
 echo "----------------------------"
@@ -36,7 +41,7 @@ echo "----------------------------"
 read -e -i "y" -p 'Will you use backend server? ' backend
   if [ $backend == y ] ; then
       repos="${repos}back"
-      read -e -i "y" -p 'Will you use php? ' php
+      read -e -i "n" -p 'Will you use php? ' php
            if [ $php == y ] ; then
                 installer="${installer}&& sudo apt-get install -y php-fpm php-curl php-bcmath php-intl php-json php-mbstring php-mysql php-soap php-xml php-zip"
                 read -e -i "y" -p 'Will you use composer? ' composer
@@ -51,6 +56,11 @@ read -e -i "y" -p 'Will you use backend server? ' backend
   if [ $java == y ] ; then
     read -e -i "11" -p 'Please specify which java 8/11: ' javaversion
     installer="${installer} && sudo apt-get install -y openjdk-$javaversion-jdk maven"
+    release=`ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "lsb_release -a" | grep Release`
+    echo $release
+      if [[$javaversion == 11 and $release =~ 16]]; then
+        ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "sudo add-apt-repository ppa:linuxuprising/java && sudo apt-get update"
+      fi
   fi
 
 	if [ "$npm" != "y" ] ; then
@@ -88,9 +98,6 @@ read -e -i "n" -p 'Will you use cms? ' cms
   fi
 
 
-read -e -i "ubuntu" -p 'Please provide the ssh user to connect: ' remoteuser
-read -e -i "6776" -p 'Please provide the ssh port to use: ' sshport
-
 path="\/var\/www\/$pname\/$env\/"
 ospath="/var/www/"
 
@@ -105,7 +112,7 @@ if [ $deployment == y ] ;   then
  ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "$apachios && $installer && sudo mkdir -p $ospath/$pname/$env && sudo chown -R $remoteuser:$remoteuser $ospath/$pname/ && sudo chmod -R 775 /$ospath/$pname/"
 fi
 
-ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "$installer  && sudo mkdir -p $ospath/$pname/$env && sudo chown $remoteuser:$remoteuser -R $ospath/$pname/ && sudo chmod -R 775 $ospath/$pname/"
+ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "$installer  && sudo mkdir -p $ospath/$pname/$env && sudo chown $remoteuser:$remoteuser -R $ospath/$pname/ && sudo chmod -R 775 $ospath/$pname/ && sudo certbot certonly --apache -d$domain"
 
 if [[ $repos =~ "front" ]] ;   then
     ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd $ospath/$pname/$env/ && git clone $frontendrepo && cd $frontdir && git checkout $fbranch"
