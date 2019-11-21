@@ -56,9 +56,9 @@ read -e -i "y" -p 'Will you use backend server? ' backend
   if [ $java == y ] ; then
     read -e -i "11" -p 'Please specify which java 8/11: ' javaversion
     installer="${installer} && sudo apt-get install -y openjdk-$javaversion-jdk maven"
-    release=`ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "lsb_release -a" | grep Release`
+    release=`ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "hostnamectl | grep Operating | sed 's/[^0-9]//g' | head -c 2"`
     echo $release
-      if [[$javaversion == 11 and $release =~ 16]]; then
+      if [[ $javaversion == "11" && $release == "16" ]]; then
         ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "sudo add-apt-repository ppa:linuxuprising/java && sudo apt-get update"
       fi
   fi
