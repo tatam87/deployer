@@ -13,7 +13,7 @@ apasimple=apache_sample
 apaproxy=apache_backproxy_sample
 
 printf "\n\033[0;33mPlease answer the questions for deployment with y or n or as suggested. \033[0m\n"
-read -e -i "master" -p 'Please provide the environment type dev/stage/prod: ' env
+read -e -i "prod" -p 'Please provide the environment type dev/stage/prod: ' env
 read -e -i "someproject" -p 'What is the project name? ' pname
 read -e -i "test.test.com" -p 'Please provide the domain? ' domain
 read -e -i "ubuntu" -p 'Please provide the ssh user to connect: ' remoteuser
@@ -91,13 +91,14 @@ read -e -i "n" -p 'Will you use cms? ' cms
   fi
 
 
-path="\/var\/www\/$pname\/$env\/"
+#path="\/var\/www\/$pname\/$env\/"
+path="/var/www/$pname/$env/"
 ospath="/var/www/"
-api="cat apipath
+api="cat apipath"
 
 if [ $backend == y ] ;   then
-  cat apache_backproxy_sample | sed "s/domain/$domain/g; s/backendport/$backendport/g; s/path/$path/g" > $domain.conf
-  cat service_sample | sed "s/project/$pname/g; s/dir/$backdir/g; s/env/$env/g; s/pname/$pname/g; s/portc/$backendport/g" > $pname.service
+  cat apache_backproxy_sample | sed "s|domain|$domain|g; s|backendport|$backendport|g; s|path|$path/$backdir|g" > $domain.conf
+  cat service_sample | sed "s|project|$pname|g; s|dir|$backdir|g; s|env|$env|g; s|pname|$pname|g; s|portc|$backendport|g" > $pname.service
 else
   cat apache_sample | sed "s/domain/$domain/g; s/backend/$path\/$backdir/; s/path/$path/g" > $domain.conf
 fi
@@ -140,3 +141,4 @@ fi
 if [[ $repos =~ "cms" ]] ; then
       ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd $ospath/$pname/$env/ && git clone $cmsrepo && cd $cmsdir && git checkout $cbranch"
 fi
+rm $domain.conf
