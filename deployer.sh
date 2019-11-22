@@ -5,7 +5,7 @@ printf "\n\033[0;33mBefore you start confirm tha A record for your domain exists
 printf "\n\033[0;33mThere will be a lot of ssh conections so we will make ssh agent to handle them, please provide the ssh passphrase.\033[0m\n"
 echo "----------------------------"
 ssh-agent && ssh-add
-installer="sudo apt-get update "
+installer="sudo apt-get update && sudo apt-get install -y rpl "
 apachios="sudo apt-get install -y apache2 && sudo a2enmod alias ssl headers proxy proxy_fcgi proxy_http proxy_html rewrite xml2enc && sudo systemctl restart apache2 && sudo add-apt-repository ppa:certbot/certbot && sudo apt-get update && sudo apt-get install -y certbot python-certbot-apache "
 rsa=/home/$USER/.ssh/id_rsa
 
@@ -51,7 +51,7 @@ read -e -i "y" -p 'Will you use backend server? ' backend
           fi
  fi
 
- read -e -i "y" -p 'Will you use local java? ' java
+ read -e -i "y" -p 'Will you use java? ' java
 
   if [ $java == y ] ; then
     read -e -i "11" -p 'Please specify which java 8/11: ' javaversion
@@ -93,6 +93,7 @@ read -e -i "n" -p 'Will you use cms? ' cms
 
 path="\/var\/www\/$pname\/$env\/"
 ospath="/var/www/"
+api="cat apipath
 
 if [ $backend == y ] ;   then
   cat apache_backproxy_sample | sed "s/domain/$domain/g; s/backendport/$backendport/g; s/path/$path/g" > $domain.conf
@@ -107,12 +108,22 @@ if [ $deployment == y ] ;   then
  ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "$apachios && $installer && sudo mkdir -p $ospath/$pname/$env && sudo chown -R $remoteuser:$remoteuser $ospath/$pname/ && sudo chmod -R 775 $ospath/$pname/"
 fi
 
+if  [ $mysql == y ] ; then
+  read -sp 'Please provide the root mysql password you have or created on deployment: ' rootpasswd
+  ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "mysql -uroot -p${rootpasswd}  <<-EOF
+  CREATE DATABASE $bdshceme;
+  CREATE USER $mysqluser@localhost IDENTIFIED BY $sqluserpass;
+  GRANT ALL PRIVILEGES ON $bdshceme.* TO $mysqluser@localhost;
+  FLUSH PRIVILEGES;
+  exit
+  EOF"
+fi
 ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "$installer  && sudo mkdir -p $ospath/$pname/$env && sudo chown $remoteuser:$remoteuser -R $ospath/$pname/ && sudo chmod -R 775 $ospath/$pname/ && sudo certbot certonly --apache -d$domain"
 
 if [[ $repos =~ "front" ]] ;   then
-    ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd $ospath/$pname/$env/ && git clone $frontendrepo && cd $frontdir && git checkout $fbranch"
+    ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd $ospath/$pname/$env/ && git clone $frontendrepo && cd $frontdir && git checkout $fbranch && cp src/config/config.js.sample src/config/config.js && rpl /path/to/api /api/v1 src/config/config.js && rpl http://localhost:8081 https://$domain && rpl fcenv $env src/config/config.js"
       if [ $yarnf == y ] ; then
-            ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd $ospath/$pname/$env/$frontdir/"
+            ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd $ospath/$pname/$env/$frontdir/ "
       fi
     scp -P$sshport $domain.conf $remoteuser@$domain:~/
     ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=676}" "sudo mv $domain.conf /etc/apache2/sites-available/ && sudo a2ensite $domain && sudo systemctl reload apache2"
@@ -120,21 +131,10 @@ if [[ $repos =~ "front" ]] ;   then
 fi
 
 if [[ $repos =~ "back" ]] ; then
-      ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd $ospath/$pname/$env/ && git clone $backendrepo && cd $backdir && git checkout $bbranch && cat src/main/resources/application.yaml.dist | sed 's/database_name/$bdshceme/; s/database_ser/$mysqluser/; s/database_password/$sqluserpass/; s/spring_profile/$spring_profile/ > src/main/resources/application.yaml'"
+      ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd $ospath/$pname/$env/ && git clone $backendrepo && cd $backdir && git checkout $bbranch && cat src/main/resources/application.yaml.dist | sed 's/database_name/$bdshceme/; s/database_user/$mysqluser/; s/database_password/$sqluserpass/; s/spring_profile/$spring_profile/ > src/main/resources/application.yaml'"
       scp -P$sshport $pname.service  $remoteuser@$domain:~/
       ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "sudo mv $pname.service /etc/systemd/system/ && sudo systemctl daemon-reload && sudo systemctl start $pname"
       rm $pname.service
-
-        if  [ $mysql == y ] ; then
-          read -sp 'Please provide the root mysql password you have or created on deployment: ' rootpasswd
-          ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "mysql -uroot -p${rootpasswd}  <<-EOF
-          CREATE DATABASE $bdshceme;
-          CREATE USER $mysqluser@localhost IDENTIFIED BY $sqluserpass;
-          GRANT ALL PRIVILEGES ON $bdshceme.* TO $mysqluser@localhost;
-          FLUSH PRIVILEGES;
-          exit
-          EOF"
-        fi
 fi
 
 if [[ $repos =~ "cms" ]] ; then
