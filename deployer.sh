@@ -63,15 +63,21 @@ read -e -i "y" -p 'Will you use backend server? ' backend
       fi
     read -e -i "prod" -p 'Please provide the spring profile: ' spring_profile
   fi
-
-  read -e -i "y" -p 'Will you use local mysql? ' mysql
-    if [ $mysql == y ] ; then
-      installer="${installer} && sudo apt-get install -y mysql-server"
-      read -p 'Please provide sql user: ' mysqluser
-      read -sp 'Please provide user password: ' sqluserpass
-      read -p 'Please provide the database name: ' bdshceme
-    fi
-
+  read -e -i "n" -p 'Will you use RDS: ' rds
+  if [ $rds == "y" ] ; then
+    read -p 'Please provide the RDS master password: ' rdspass
+    read -p 'Please provide the rdsuser you want to create: ' rdsuser
+    read -p 'Please provide the RDS user pasword you want to create: ' rdspass
+    read -p 'Please provide the RDS host url: ' rdshost
+  else
+    read -e -i "y" -p 'Will you use mysql on the server? ' mysql
+      if [ $mysql == "y" ] ; then
+        installer="${installer} && sudo apt-get install -y mysql-server"
+        read -p 'Please provide sql user: ' mysqluser
+        read -sp 'Please provide user password: ' sqluserpass
+        read -p 'Please provide the database name: ' bdshceme
+      fi
+  fi
   printf " Example of repository: https://github.com/someuser/someproject.git\n"
   read -p 'Please provide the cloning repository for backend: ' backendrepo
   backdir=`echo $backendrepo | rev | cut -d / -f1 | rev|cut -d . -f1`
@@ -94,16 +100,13 @@ read -e -i "n" -p 'Will you use cms? ' cms
 #path="\/var\/www\/$pname\/$env\/"
 path="/var/www/$pname/$env/"
 ospath="/var/www/"
-api="cat apipath"
 
-if [ $backend == y ] ;   then
+if [ $backend == "y" ] ;   then
   cat apache_backproxy_sample | sed "s|domain|$domain|g; s|backendport|$backendport|g; s|path|$path/$backdir|g" > $domain.conf
   cat service_sample | sed "s|project|$pname|g; s|dir|$backdir|g; s|env|$env|g; s|pname|$pname|g; s|portc|$backendport|g" > $pname.service
 else
-  cat apache_sample | sed "s/domain/$domain/g; s/backend/$path\/$backdir/; s/path/$path/g" > $domain.conf
+  cat apache_sample | sed "s|domain|$domain|g; s|backend|$path/$backdir|; s|path|$path|g" > $domain.conf
 fi
-
-cat apache_sample | sed "s/domain/$domain/g; s/backend/$path\/$backdir/; s/path/$path/g" > $domain.conf
 
 if [ $deployment == y ] ;   then
  ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "$apachios && $installer && sudo mkdir -p $ospath/$pname/$env && sudo chown -R $remoteuser:$remoteuser $ospath/$pname/ && sudo chmod -R 775 $ospath/$pname/"
@@ -122,17 +125,17 @@ fi
 ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "$installer  && sudo mkdir -p $ospath/$pname/$env && sudo chown $remoteuser:$remoteuser -R $ospath/$pname/ && sudo chmod -R 775 $ospath/$pname/ && sudo certbot certonly --apache -d$domain"
 
 if [[ $repos =~ "front" ]] ;   then
-    ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd $ospath/$pname/$env/ && git clone $frontendrepo && cd $frontdir && git checkout $fbranch && cp src/config/config.js.sample src/config/config.js && rpl /path/to/api /api/v1 src/config/config.js && rpl http://localhost:8081 https://$domain && rpl fcenv $env src/config/config.js"
+    ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd $ospath/$pname/$env/ && git clone $frontendrepo && cd $frontdir && git checkout $fbranch && cat src/config/config.js.sample | sed 's|/path/to/api|/api/v1/; s|http://localhost:8081|https://$domain|; s|dev|$env|' > src/config/config.js"
       if [ $yarnf == y ] ; then
             ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd $ospath/$pname/$env/$frontdir/ "
       fi
     scp -P$sshport $domain.conf $remoteuser@$domain:~/
-    ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=676}" "sudo mv $domain.conf /etc/apache2/sites-available/ && sudo a2ensite $domain && sudo systemctl reload apache2"
+    ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "sudo mv $domain.conf /etc/apache2/sites-available/ && sudo a2ensite $domain && sudo systemctl reload apache2"
     rm $domain.conf
 fi
 
 if [[ $repos =~ "back" ]] ; then
-      ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd $ospath/$pname/$env/ && git clone $backendrepo && cd $backdir && git checkout $bbranch && cat src/main/resources/application.yaml.dist | sed 's/database_name/$bdshceme/; s/database_user/$mysqluser/; s/database_password/$sqluserpass/; s/spring_profile/$spring_profile/ > src/main/resources/application.yaml'"
+      ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd $ospath/$pname/$env/ && git clone $backendrepo && cd $backdir && git checkout $bbranch && cat src/main/resources/application.yaml.dist | sed 's|database_name|$bdshceme|; s|database_user|$mysqluser|; s|database_password|$sqluserpass|; s|spring_profile|$spring_profile|' > src/main/resources/application.yaml"
       scp -P$sshport $pname.service  $remoteuser@$domain:~/
       ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "sudo mv $pname.service /etc/systemd/system/ && sudo systemctl daemon-reload && sudo systemctl start $pname"
       rm $pname.service
