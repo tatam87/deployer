@@ -138,7 +138,12 @@ fi
 ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "$installer  && sudo mkdir -p -v $ospath$pname/$env && sudo chown $remoteuser:$remoteuser -R $ospath$pname/ && sudo chmod -R 775 $ospath$pname/ && sudo certbot certonly --apache -d$domain"
 
 if [[ $repos =~ "front" ]] ;   then
-    ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd $ospath$pname/$env/ && git clone $frontendrepo && cd $frontdir && git checkout $fbranch && cat src/config/config.js.sample | sed 's|/path/to/api|/api/v1/; s|http://localhost:8081|https://$domain|; s|dev|$env|' > src/config/config.js"
+    ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd $ospath$pname/$env/ && git clone $frontendrepo && cd $frontdir && git checkout $fbranch"
+      if [[ $backend == "y" ]]
+        ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd $ospath$pname/$env/$fbranch && cat src/config/config.js.sample | sed 's|/path/to/api|/api/v1/; s|http://localhost:8081|https://$domain|; s|dev|$env|' > src/config/config.js"
+      else
+          ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd $ospath$pname/$env/$fbranch && cat src/config/config.js.sample | sed 's|http://localhost:8081|https://$domain|; s|dev|$env|' > src/config/config.js"
+      fi
     ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd $ospath$pname/$env/$frontdir/ && sh deploy-$env.sh"
     scp -P$sshport $domain.conf $remoteuser@$domain:~/
     ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "sudo mv $domain.conf /etc/apache2/sites-available/ && sudo a2ensite $domain && sudo systemctl reload apache2"
