@@ -33,7 +33,6 @@ if [ $frontend == y ] ; then
         if [ $npm == y ] ; then
           installer="${installer} && sudo apt-get install -y npm nodejs && sudo npm -g install n && sudo n latest && sudo npm -g install yarn"
         fi
-      read -e -i "y" -p 'Will you use yarn for frontend? ' yarnf
 fi
 
 echo "----------------------------"
