@@ -5,7 +5,7 @@ printf "\n\033[0;33mBefore you start confirm tha A record for your domain exists
 printf "\n\033[0;33mThere will be a lot of ssh conections so we will make ssh agent to handle them, please provide the ssh passphrase.\033[0m\n"
 echo "----------------------------"
 ssh-agent && ssh-add
-installer="sudo apt-get update && sudo apt-get install -y rpl "
+installer="sudo apt-get update "
 apachios="sudo apt-get install -y apache2 && sudo a2enmod alias ssl headers proxy proxy_fcgi proxy_http proxy_html rewrite xml2enc && sudo systemctl restart apache2 && sudo add-apt-repository ppa:certbot/certbot && sudo apt-get update && sudo apt-get install -y certbot python-certbot-apache "
 rsa=/home/$USER/.ssh/id_rsa
 
@@ -52,7 +52,7 @@ read -e -i "y" -p 'Will you use backend server? ' backend
 
  read -e -i "y" -p 'Will you use java? ' java
 
-  if [ $java == y ] ; then
+  if [ $java == "y" ] ; then
     read -e -i "11" -p 'Please specify which java 8/11: ' javaversion
     installer="${installer} && sudo apt-get install -y openjdk-$javaversion-jdk maven"
     release=`ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "hostnamectl | grep Operating | sed 's/[^0-9]//g' | head -c 2"`
@@ -99,5 +99,3 @@ read -e -i "n" -p 'Will you use cms? ' cms
   fi
 
 . logic.sh
-
-#path="\/var\/www\/$pname\/$env\/"

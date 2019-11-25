@@ -15,13 +15,13 @@ if [ $deployment == "y" ] ;   then
 fi
 
 if [ $rds == "y" ] ; then
-mysql -u$rootuser -p$rootpasswd -h$rdshost -p$rdsport  "<<EOF
-CREATE DATABASE $bdshceme;
-CREATE USER '$mysqluser'@'localhost' IDENTIFIED BY '$sqluserpass';
-GRANT ALL PRIVILEGES ON $bdshceme.* TO '$mysqluser'@'localhost';
-FLUSH PRIVILEGES;
-exit
-EOF"
+  mysql -u$rootuser -p$rootpasswd -h$rdshost -p$rdsport  "<<EOF
+  CREATE DATABASE $bdshceme;
+  CREATE USER '$mysqluser'@'localhost' IDENTIFIED BY '$sqluserpass';
+  GRANT ALL PRIVILEGES ON $bdshceme.* TO '$mysqluser'@'localhost';
+  FLUSH PRIVILEGES;
+  exit
+  EOF"
 
 else
   if  [ $mysql == "y" ] ; then
@@ -53,7 +53,7 @@ fi
 if [[ $repos =~ "back" ]] ; then
       ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd $ospath$pname/$env/ && git clone $backendrepo && cd $backdir && git checkout $bbranch && cat src/main/resources/application.yaml.dist | sed 's|database_name|$bdshceme|; s|database_user|$mysqluser|; s|database_password|$sqluserpass|; s|spring_profile|$spring_profile|' > src/main/resources/application.yaml"
       scp -P$sshport $pname-$env.service  $remoteuser@$domain:~/
-      ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "sudo mv $pname-$env.service /etc/systemd/system/ && sudo systemctl daemon-reload && cd $ospath$pname/$env/$backdir && sh deploy-$env.sh"
+      ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}"" "sudo mv $pname-$env.service /etc/systemd/system/ && sudo systemctl daemon-reload && cd $ospath$pname/$env/$backdir && sh deploy-$env.sh"
       rm $pname-$env.service
 fi
 
