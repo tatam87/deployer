@@ -18,6 +18,7 @@ read -e -i "someproject" -p 'What is the project name? ' pname
 read -e -i "test.test.com" -p 'Please provide the domain? ' domain
 read -e -i "ubuntu" -p 'Please provide the ssh user to connect: ' remoteuser
 read -e -i "6776" -p 'Please provide the ssh port to use: ' sshport
+sshd="ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}""
 read -e -i "y" -p 'Is that the first time deployng on this server? ' deployment
 echo "----------------------------"
 read -e -i "y" -p 'Will you use frontend? ' frontend
@@ -54,10 +55,10 @@ read -e -i "y" -p 'Will you use backend server? ' backend
   if [ $java == "y" ] ; then
     read -e -i "11" -p 'Please specify which java 8/11: ' javaversion
     installer="${installer} && sudo apt-get install -y openjdk-$javaversion-jdk maven"
-    release=`ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "hostnamectl | grep Operating | sed 's/[^0-9]//g' | head -c 2"`
+    release=`$sshd "hostnamectl | grep Operating | sed 's/[^0-9]//g' | head -c 2"`
 
       if [[ $javaversion == "11" && $release == "16" ]]; then
-        ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "sudo add-apt-repository ppa:linuxuprising/java && sudo apt-get update"
+        $sshd "sudo add-apt-repository ppa:linuxuprising/java && sudo apt-get update"
       fi
     read -e -i "prod" -p 'Please provide the spring profile: ' spring_profile
   fi
