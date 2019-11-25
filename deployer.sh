@@ -19,7 +19,6 @@ read -e -i "test.test.com" -p 'Please provide the domain? ' domain
 read -e -i "ubuntu" -p 'Please provide the ssh user to connect: ' remoteuser
 read -e -i "6776" -p 'Please provide the ssh port to use: ' sshport
 read -e -i "y" -p 'Is that the first time deployng on this server? ' deployment
-
 echo "----------------------------"
 read -e -i "y" -p 'Will you use frontend? ' frontend
 

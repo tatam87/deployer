@@ -1,10 +1,9 @@
 #!/bin/bash
-
 path="/var/www/$pname/$env/"
 ospath="/var/www/"
 
 if [ $backend == "y" ] ;   then
-  cat apache_backproxy_sample | sed "s|domain|$domain|g; s|backendport|$backendport|g; s|path|$path/$backdir|g" > $domain.conf
+  cat apache_backproxy_sample | sed "s|domain|$domain|g; s|frontend|$path$frontdir/|; s|backendport|$backendport|g; s|path|$path/$backdir|g" > $domain.conf
   cat service_sample | sed "s|project|$pname|g; s|dir|$backdir|g; s|env|$env|g; s|pname|$pname|g; s|portc|$backendport|g" > $pname-$env.service
 else
   cat apache_sample | sed "s|domain|$domain|g; s|backend|$path/$backdir|; s|path|$path|g" > $domain.conf
