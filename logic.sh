@@ -38,7 +38,7 @@ fi
 ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "$installer  && sudo mkdir -p -v $ospath$pname/$env && sudo chown $remoteuser:$remoteuser -R $ospath$pname/ && sudo chmod -R 775 $ospath$pname/ && sudo certbot certonly --apache -d$domain"
 
 if [[ $repos =~ "front" ]] ;   then
-    ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd $ospath$pname/$env/ && git clone $frontendrepo && cd $frontdir && git checkout $fbranch"
+    ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd $ospath$pname/$env/ && git clone $frontendrepo && cd $frontdir && git checkout $fbranch && git config credential.helper store && git pull"
       if [[ $backend == "y" ]] ; then
         ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd $ospath$pname/$env/$fbranch && cat src/config/config.js.sample | sed 's|/path/to/api|/api/v1/; s|http://localhost:8081|https://$domain|; s|dev|$env|' > src/config/config.js"
       else
@@ -53,7 +53,7 @@ fi
 if [[ $repos =~ "back" ]] ; then
       ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "cd $ospath$pname/$env/ && git clone $backendrepo && cd $backdir && git checkout $bbranch && cat src/main/resources/application.yaml.dist | sed 's|database_name|$bdshceme|; s|database_user|$mysqluser|; s|database_password|$sqluserpass|; s|spring_profile|$spring_profile|' > src/main/resources/application.yaml"
       scp -P$sshport $pname-$env.service  $remoteuser@$domain:~/
-      ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "sudo mv $pname-$env.service /etc/systemd/system/ && sudo systemctl daemon-reload && cd $ospath$pname/$env/$backdir && sh deploy-$env.sh"
+      ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}" "sudo mv $pname-$env.service /etc/systemd/system/ && sudo systemctl daemon-reload && cd $ospath$pname/$env/$backdir && git config credential.helper store && sh deploy-$env.sh"
       rm $pname-$env.service
 fi
 
