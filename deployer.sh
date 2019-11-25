@@ -65,9 +65,9 @@ read -e -i "y" -p 'Will you use backend server? ' backend
   read -e -i "n" -p 'Will you use RDS: ' rds
   if [ $rds == "y" ] ; then
     read -p 'Please provide the RDS master user: ' rootuser
-    read -p 'Please provide the RDS master password: ' rootpasswd
+    read -sp 'Please provide the RDS master password: ' rootpasswd
     read -p 'Please provide the rdsuser you want to create: ' mysqluser
-    read -p 'Please provide the RDS user pasword you want to create: ' sqluserpass
+    read -sp 'Please provide the RDS user pasword you want to create: ' sqluserpass
     read -p 'Please provide the database name: ' bdshceme
     read -p 'Please provide the RDS host url: ' rdshost
     read -p 'Please provide the RDS port: ' rdsport
