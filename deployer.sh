@@ -18,7 +18,7 @@ read -e -i "someproject" -p 'What is the project name? ' pname
 read -e -i "test.test.com" -p 'Please provide the domain? ' domain
 read -e -i "ubuntu" -p 'Please provide the ssh user to connect: ' remoteuser
 read -e -i "6776" -p 'Please provide the ssh port to use: ' sshport
-sshd="ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=6776}""
+sshd="ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=22}""
 read -e -i "y" -p 'Is that the first time deployng on this server? ' deployment
 echo "----------------------------"
 read -e -i "y" -p 'Will you use frontend? ' frontend

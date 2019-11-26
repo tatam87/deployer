@@ -3,10 +3,12 @@ path="/var/www/$pname/$env/"
 ospath="/var/www/"
 
 if [ $backend == "y" ] ;   then
-  cat apache_backproxy_sample | sed "s|domain|$domain|g; s|frontend|$path$frontdir/|; s|backendport|$backendport|g; s|path|$path/$backdir|g" > $domain.conf
-  cat service_sample | sed "s|project|$pname|g; s|dir|$backdir|g; s|env|$env|g; s|pname|$pname|g; s|portc|$backendport|g" > $pname-$env.service
+  cat apache_backproxy_sample | sed "s|domain|$domain|g; s|frontend|$path$frontdir/dist|; s|backendport|$backendport|g; s|path|$path/$backdir|g" > $domain.conf
+    if [ $java == "y" ] ;   then
+      cat service_sample | sed "s|project|$pname|g; s|dir|$backdir|g; s|env|$env|g; s|pname|$pname|g; s|portc|$backendport|g" > $pname-$env.service
+    fi
 else
-  cat apache_sample | sed "s|domain|$domain|g; s|backend|$path/$backdir|; s|path|$path|g" > $domain.conf
+  cat apache_sample | sed "s|domain|$domain|g; s|backend|$path/$backdir|; s|path|$path$frontdir/dist|g" > $domain.conf
 fi
 
 if [ $deployment == "y" ] ;   then
@@ -50,10 +52,18 @@ if [[ $repos =~ "front" ]] ;   then
 fi
 
 if [[ $repos =~ "back" ]] ; then
-      $sshd "cd $ospath$pname/$env/ && git clone $backendrepo && cd $backdir && git checkout $bbranch && cat src/main/resources/application.yaml.dist | sed 's|database_name|$bdshceme|; s|database_user|$mysqluser|; s|database_password|$sqluserpass|; s|spring_profile|$spring_profile|' > src/main/resources/application.yaml"
-      scp -P$sshport $pname-$env.service  $remoteuser@$domain:~/
-      $sshd "sudo mv $pname-$env.service /etc/systemd/system/ && sudo systemctl daemon-reload && cd $ospath$pname/$env/$backdir && git config credential.helper store && sh deploy-$env.sh"
-      rm $pname-$env.service
+    if [[ $java == "y" ]] ; then
+            $sshd "cd $ospath$pname/$env/ && git clone $backendrepo && cd $backdir && git checkout $bbranch && cat src/main/resources/application.yaml.dist | sed 's|database_name|$bdshceme|; s|database_user|$mysqluser|; s|database_password|$sqluserpass|; s|spring_profile|$spring_profile|' > src/main/resources/application.yaml"
+            scp -P$sshport $pname-$env.service  $remoteuser@$domain:~/
+            $sshd "sudo mv $pname-$env.service /etc/systemd/system/ && sudo systemctl daemon-reload && cd $ospath$pname/$env/$backdir && git config credential.helper store && sh deploy-$env.sh"
+            rm $pname-$env.service
+    fi
+
+    if [[ $php == "y" ]] ; then
+      $sshd "cd $ospath$pname/$env/ && git clone $backendrepo && cd $backdir && git checkout $bbranch && cat config/config.php.sample | sed 's|database_name|$bdshceme|; s|database_user|$mysqluser|; s|database_password|$sqluserpass|' > config/config.php"
+      $sshd "cd $ospath$pname/$env/$backdir && git config credential.helper store && sh deploy-$env.sh"
+
+    fi
 fi
 
 if [[ $repos =~ "cms" ]] ; then
