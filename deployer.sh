@@ -23,14 +23,14 @@ read -e -i "y" -p 'Is that the first time deployng on this server? ' deployment
 echo "----------------------------"
 read -e -i "y" -p 'Will you use frontend? ' frontend
 
-if [ $frontend == y ] ; then
+if [ $frontend == "y" ] ; then
     repos="${repos}front"
       printf " Example of repository: https://github.com/someuser/someproject.git\n"
       read -p 'Please provide the cloning repository for frontend: ' frontendrepo
       frontdir=`echo $frontendrepo | rev | cut -d / -f1 | rev|cut -d . -f1`
       read -e -i "$env" -p "Please provide the branch: "  fbranch
       read -e -i "y" -p 'Will you use npm? ' npm
-        if [ $npm == y ] ; then
+        if [ $npm == "y" ] ; then
           installer="${installer} && sudo apt-get install -y npm nodejs && sudo npm -g install n && sudo n latest && sudo npm -g install yarn"
         fi
 fi
@@ -38,19 +38,20 @@ fi
 echo "----------------------------"
 
 read -e -i "y" -p 'Will you use backend server? ' backend
-  if [ $backend == y ] ; then
+  if [ $backend == "y" ] ; then
       repos="${repos}back"
       read -e -i "n" -p 'Will you use php? ' php
-           if [ $php == y ] ; then
+           if [ $php == "y" ] ; then
               installer="${installer}&& sudo apt-get install -y php-fpm php-curl php-bcmath php-intl php-json php-mbstring php-mysql php-soap php-xml php-zip"
               read -e -i "y" -p 'Will you use composer? ' composer
                 if [ "$composer" == y ] ; then
                   installer="${installer} composer "
                 fi
           fi
+    read -e -i "y" -p 'Will you use java? ' java
  fi
 
- read -e -i "y" -p 'Will you use java? ' java
+
 
   if [ $java == "y" ] ; then
     read -e -i "11" -p 'Please specify which java 8/11: ' javaversion
