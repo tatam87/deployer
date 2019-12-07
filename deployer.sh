@@ -48,10 +48,8 @@ read -e -i "y" -p 'Will you use backend server? ' backend
                   installer="${installer} composer "
                 fi
           fi
-    read -e -i "y" -p 'Will you use java? ' java
+        read -e -i "y" -p 'Will you use java? ' java
  fi
-
-
 
   if [ $java == "y" ] ; then
     read -e -i "11" -p 'Please specify which java 8/11: ' javaversion
