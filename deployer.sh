@@ -19,25 +19,25 @@ read -e -i "test.test.com" -p 'Please provide the domain? ' domain
 read -e -i "ubuntu" -p 'Please provide the ssh user to connect: ' remoteuser
 read -e -i "6776" -p 'Please provide the ssh port to use: ' sshport
 sshd="ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=22}""
-read -e -i "y" -p 'Is that the first time deployng on this server? ' deployment
+read -n1 -e -i "y" -p 'Is that the first time deployng on this server? ' deployment
 echo "----------------------------"
-read -e -i "y" -p 'Will you use frontend? ' frontend
+read -n1 -e -i "y" -p 'Will you use frontend? ' frontend
 
-if [ $frontend == "y" ] ; then
+if [ $frontend == "[Yy]" ] ; then
     repos="${repos}front"
       printf " Example of repository: https://github.com/someuser/someproject.git\n"
       read -p 'Please provide the cloning repository for frontend: ' frontendrepo
       frontdir=`echo $frontendrepo | rev | cut -d / -f1 | rev|cut -d . -f1`
       read -e -i "$env" -p "Please provide the branch: "  fbranch
-      read -e -i "y" -p 'Will you use npm? ' npm
-        if [ $npm == "y" ] ; then
+      read -n1 -e -i "y" -p 'Will you use npm? ' npm
+        if [ $npm == "[yY]" ] ; then
           installer="${installer} && sudo apt-get install -y npm nodejs && sudo npm -g install n && sudo n latest && sudo npm -g install yarn"
         fi
 fi
 
 echo "----------------------------"
 
-read -e -i "y" -p 'Will you use backend server? ' backend
+read -n1 -e -i "y" -p 'Will you use backend server? ' backend
   if [ $backend == "y" ] ; then
       repos="${repos}back"
       read -e -i "n" -p 'Will you use php? ' php
@@ -48,7 +48,7 @@ read -e -i "y" -p 'Will you use backend server? ' backend
                   installer="${installer} composer "
                 fi
           fi
-        read -e -i "y" -p 'Will you use java? ' java
+        read -n1 -e -i "y" -p 'Will you use java? ' java
  fi
 
   if [ $java == "y" ] ; then
@@ -61,7 +61,7 @@ read -e -i "y" -p 'Will you use backend server? ' backend
       fi
     read -e -i "prod" -p 'Please provide the spring profile: ' spring_profile
   fi
-  read -e -i "n" -p 'Will you use RDS: ' rds
+  read -n1 -e -i "n" -p 'Will you use RDS: ' rds
   if [ $rds == "y" ] ; then
     read -p 'Please provide the RDS master user: ' rootuser
     read -sp 'Please provide the RDS master password: ' rootpasswd
@@ -71,7 +71,7 @@ read -e -i "y" -p 'Will you use backend server? ' backend
     read -p 'Please provide the RDS host url: ' rdshost
     read -p 'Please provide the RDS port: ' rdsport
   else
-    read -e -i "y" -p 'Will you use mysql on the server? ' mysql
+    read -n1 -e -i "y" -p 'Will you use mysql on the server? ' mysql
       if [ $mysql == "y" ] ; then
         installer="${installer} && sudo apt-get install -y mysql-server"
         read -p 'Please provide sql user: ' mysqluser
@@ -87,7 +87,7 @@ read -e -i "y" -p 'Will you use backend server? ' backend
 
 echo "----------------------------"
 
-read -e -i "n" -p 'Will you use cms? ' cms
+read -n1 -e -i "n" -p 'Will you use cms? ' cms
   if [ $cms == y ] ;   then
       repos="${repos}cms"
       printf " Example of repository: https://github.com/someuser/someproject.git\n"
