@@ -23,14 +23,14 @@ read -n1 -e -i "y" -p 'Is that the first time deployng on this server? ' deploym
 echo "----------------------------"
 read -n1 -e -i "y" -p 'Will you use frontend? ' frontend
 
-if [ $frontend == "y" ] ; then
+if [[ $frontend == [Yy] ]] ; then
     repos="${repos}front"
       printf " Example of repository: https://github.com/someuser/someproject.git\n"
       read -p 'Please provide the cloning repository for frontend: ' frontendrepo
       frontdir=`echo $frontendrepo | rev | cut -d / -f1 | rev|cut -d . -f1`
       read -e -i "$env" -p "Please provide the branch: "  fbranch
       read -n1 -e -i "y" -p 'Will you use npm? ' npm
-        if [ $npm == "y" ] ; then
+        if [[ $npm == [Yy] ]]  ; then
           installer="${installer} && sudo apt-get install -y npm nodejs && sudo npm -g install n && sudo n latest && sudo npm -g install yarn"
         fi
 fi
@@ -38,21 +38,21 @@ fi
 echo "----------------------------"
 
 read -n1 -e -i "y" -p 'Will you use backend server? ' backend
-  if [ $backend == "y" ] ; then
+  if [[ $backend == [Yy] ]] ; then
       repos="${repos}back"
       read -e -i "n" -p 'Will you use php? ' php
-           if [ $php == "y" ] ; then
+           if [[ $php == [Yy] ]] ; then
               installer="${installer}&& sudo apt-get install -y php-fpm php-curl php-bcmath php-intl php-json php-mbstring php-mysql php-soap php-xml php-zip"
-              read -e -i "y" -p 'Will you use composer? ' composer
-                if [ "$composer" == y ] ; then
+              read -n1 -e -i "y" -p 'Will you use composer? ' composer
+                if [[ "$composer" == [Yy] ]] ; then
                   installer="${installer} composer "
                 fi
           fi
         read -n1 -e -i "y" -p 'Will you use java? ' java
  fi
 
-  if [ $java == "y" ] ; then
-    read -e -i "11" -p 'Please specify which java 8/11: ' javaversion
+  if [[ $java == [Yy] ]] ; then
+    read -n2 -e -i "11" -p 'Please specify which java 8/11: ' javaversion
     installer="${installer} && sudo apt-get install -y openjdk-$javaversion-jdk maven"
     release=`$sshd "hostnamectl | grep Operating | sed 's/[^0-9]//g' | head -c 2"`
 
@@ -62,7 +62,7 @@ read -n1 -e -i "y" -p 'Will you use backend server? ' backend
     read -e -i "prod" -p 'Please provide the spring profile: ' spring_profile
   fi
   read -n1 -e -i "n" -p 'Will you use RDS: ' rds
-  if [ $rds == "y" ] ; then
+  if [[ $rds == [Yy] ]] ; then
     read -p 'Please provide the RDS master user: ' rootuser
     read -sp 'Please provide the RDS master password: ' rootpasswd
     read -p 'Please provide the rdsuser you want to create: ' mysqluser
@@ -72,7 +72,7 @@ read -n1 -e -i "y" -p 'Will you use backend server? ' backend
     read -p 'Please provide the RDS port: ' rdsport
   else
     read -n1 -e -i "y" -p 'Will you use mysql on the server? ' mysql
-      if [ $mysql == "y" ] ; then
+      if [[ $mysql == [Yy] ]] ; then
         installer="${installer} && sudo apt-get install -y mysql-server"
         read -p 'Please provide sql user: ' mysqluser
         read -sp 'Please provide user password: ' sqluserpass
@@ -88,7 +88,7 @@ read -n1 -e -i "y" -p 'Will you use backend server? ' backend
 echo "----------------------------"
 
 read -n1 -e -i "n" -p 'Will you use cms? ' cms
-  if [ $cms == y ] ;   then
+  if [[ $cms == [Yy] ]] ;   then
       repos="${repos}cms"
       printf " Example of repository: https://github.com/someuser/someproject.git\n"
       read -p 'Please provide the cloning repository for cms: ' cmsrepo

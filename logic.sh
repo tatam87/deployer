@@ -2,20 +2,20 @@
 path="/var/www/$pname/$env/"
 ospath="/var/www/"
 
-if [ $backend == "y" ] ;   then
+if [[ $backend == [Yy] ]] ;   then
   cat apache_backproxy_sample | sed "s|domain|$domain|g; s|frontend|$path$frontdir/dist|; s|backendport|$backendport|g; s|path|$path/$backdir|g" > $domain.conf
-    if [ $java == "y" ] ;   then
+    if [[ $java == [Yy] ]] ;   then
       cat service_sample | sed "s|project|$pname|g; s|dir|$backdir|g; s|env|$env|g; s|pname|$pname|g; s|user|$remoteuser; s|portc|$backendport|g" > $pname-$env.service
     fi
 else
   cat apache_sample | sed "s|domain|$domain|g; s|backend|$path/$backdir|; s|path|$path$frontdir/dist|g" > $domain.conf
 fi
 
-if [ $deployment == "y" ] ;   then
+if [[ $deployment == [Yy] ]] ;   then
  $sshd "$apachios && $installer && sudo mkdir -p -v $ospath$pname/$env && sudo chown -R $remoteuser:$remoteuser $ospath$pname/ && sudo chmod -R 775 $ospath$pname/"
 fi
 
-if [ $rds == "y" ] ; then
+if [[ $rds == [Yy] ]] ; then
   mysql -u$rootuser -p$rootpasswd -h$rdshost -p$rdsport  "<<EOF
   CREATE DATABASE $bdshceme;
   CREATE USER '$mysqluser'@'localhost' IDENTIFIED BY '$sqluserpass';
@@ -25,7 +25,7 @@ if [ $rds == "y" ] ; then
   EOF"
 
 else
-  if  [ $mysql == "y" ] ; then
+  if  [[ $mysql == [Yy] ]] ; then
     read -sp 'Please provide the root mysql password you have or created on deployment: ' rootpasswd
     $sshd "mysql -uroot -p${rootpasswd}  <<EOF
     CREATE DATABASE $bdshceme;
@@ -40,7 +40,7 @@ $sshd "$installer  && sudo mkdir -p -v $ospath$pname/$env && sudo chown $remoteu
 
 if [[ $repos =~ "front" ]] ;   then
     $sshd "cd $ospath$pname/$env/ && git clone $frontendrepo && cd $frontdir && git checkout $fbranch && git config credential.helper store && git pull"
-      if [[ $backend == "y" ]] ; then
+      if [[ $backend == [Yy] ]] ; then
         $sshd "cd $ospath$pname/$env/$fbranch && cat src/config/config.js.sample | sed 's|/path/to/api|/api/v1/; s|http://localhost:8081|https://$domain|; s|dev|$env|' > src/config/config.js"
       else
           $sshd "cd $ospath$pname/$env/$fbranch && cat src/config/config.js.sample | sed 's|http://localhost:8081|https://$domain|; s|dev|$env|' > src/config/config.js"
@@ -52,14 +52,14 @@ if [[ $repos =~ "front" ]] ;   then
 fi
 
 if [[ $repos =~ "back" ]] ; then
-    if [[ $java == "y" ]] ; then
+    if [[ $java == [Yy] ]] ; then
             $sshd "cd $ospath$pname/$env/ && git clone $backendrepo && cd $backdir && git checkout $bbranch && cat src/main/resources/application.yaml.dist | sed 's|database_name|$bdshceme|; s|database_user|$mysqluser|; s|database_password|$sqluserpass|; s|spring_profile|$spring_profile|' > src/main/resources/application.yaml"
             scp -P$sshport $pname-$env.service  $remoteuser@$domain:~/
             $sshd "sudo mv $pname-$env.service /etc/systemd/system/ && sudo systemctl daemon-reload && cd $ospath$pname/$env/$backdir && git config credential.helper store && sh deploy-$env.sh"
             rm $pname-$env.service
     fi
 
-    if [[ $php == "y" ]] ; then
+    if [[ $php == [Yy] ]] ; then
       $sshd "cd $ospath$pname/$env/ && git clone $backendrepo && cd $backdir && git checkout $bbranch && cat config/config.php.sample | sed 's|database_name|$bdshceme|; s|database_user|$mysqluser|; s|database_password|$sqluserpass|' > config/config.php"
       $sshd "cd $ospath$pname/$env/$backdir && git config credential.helper store && sh deploy-$env.sh"
 
