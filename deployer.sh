@@ -23,14 +23,14 @@ read -n1 -e -i "y" -p 'Is that the first time deployng on this server? ' deploym
 echo "----------------------------"
 read -n1 -e -i "y" -p 'Will you use frontend? ' frontend
 
-if [ $frontend == "[Yy]" ] ; then
+if [ $frontend == "y" ] ; then
     repos="${repos}front"
       printf " Example of repository: https://github.com/someuser/someproject.git\n"
       read -p 'Please provide the cloning repository for frontend: ' frontendrepo
       frontdir=`echo $frontendrepo | rev | cut -d / -f1 | rev|cut -d . -f1`
       read -e -i "$env" -p "Please provide the branch: "  fbranch
       read -n1 -e -i "y" -p 'Will you use npm? ' npm
-        if [ $npm == "[yY]" ] ; then
+        if [ $npm == "y" ] ; then
           installer="${installer} && sudo apt-get install -y npm nodejs && sudo npm -g install n && sudo n latest && sudo npm -g install yarn"
         fi
 fi
