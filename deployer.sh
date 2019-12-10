@@ -16,9 +16,9 @@ read -e -i "prod" -p 'Please provide the environment type dev/stage/prod: ' env
 read -e -i "someproject" -p 'What is the project name? ' pname
 read -e -i "test.test.com" -p 'Please provide the domain? ' domain
 read -e -i "ubuntu" -p 'Please provide the ssh user to connect: ' remoteuser
-#while  [[ $sshport !=  [0-9] ]]; do
+while  [[ $sshport != ?(-)+([0-9]) ]]  ; do
   read -e -i "6776" -p 'Please provide the ssh port to use: ' sshport
-#done
+done
 sshd="ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=22}""
 while  [[ $deployment !=  [YyNn] ]]; do
   read -n1 -e -i "y" -p 'Is that the first time deployng on this server? ' deployment
@@ -102,7 +102,7 @@ done
   read -p 'Please provide the cloning repository for backend: ' backendrepo
   backdir=`echo $backendrepo | rev | cut -d / -f1 | rev|cut -d . -f1`
   read -e -i "$env" -p "Please provide the branch: "  bbranch
-  while  [[ $backendport !=  [0-9] ]]; do
+  while  [[ $backendport !=  ?(-)+([0-9] ]]; do
     read -e -i "5000" -p 'Whats the backend port? ' backendport
   done
 echo "----------------------------"
