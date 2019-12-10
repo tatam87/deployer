@@ -1,7 +1,7 @@
 #!/bin/bash
 
 printf "Hello $USER\n"
-printf "\n\033[0;33mBefore you start confirm tha A record for your domain exists and you have ssh access !\033[0m\n"
+printf "\n\033[0;33mBefore you start confirm tha A record for your domain exists and you have ssh access and the user is a sudoer !\033[0m\n"
 printf "\n\033[0;33mThere will be a lot of ssh conections so we will make ssh agent to handle them, please provide the ssh passphrase.\033[0m\n"
 echo "----------------------------"
 ssh-agent && ssh-add
