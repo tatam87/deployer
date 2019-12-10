@@ -16,9 +16,9 @@ read -e -i "prod" -p 'Please provide the environment type dev/stage/prod: ' env
 read -e -i "someproject" -p 'What is the project name? ' pname
 read -e -i "test.test.com" -p 'Please provide the domain? ' domain
 read -e -i "ubuntu" -p 'Please provide the ssh user to connect: ' remoteuser
-while  [[ $sshport !=  [0-9] ]]; do
+#while  [[ $sshport !=  [0-9] ]]; do
   read -e -i "6776" -p 'Please provide the ssh port to use: ' sshport
-done
+#done
 sshd="ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=22}""
 while  [[ $deployment !=  [YyNn] ]]; do
   read -n1 -e -i "y" -p 'Is that the first time deployng on this server? ' deployment
