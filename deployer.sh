@@ -21,11 +21,11 @@ while  [[ $sshport != ?(-)+([0-9]) ]]  ; do
 done
 sshd="ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=22}""
 while  [[ $deployment !=  [YyNn] ]]; do
-  read -n1 -e -i "y" -p 'Is that the first time deployng on this server? ' deployment
+  read -n3 -e -i "y" -p 'Is that the first time deployng on this server? ' deployment
 done
 echo "----------------------------"
-while  [[ $deployment !=  [YyNn] ]]; do
-  read -n1 -e -i "y" -p 'Will you use frontend? ' frontend
+while  [[ $frontend !=  [YyNn] ]]; do
+  read -n3 -e -i "y" -p 'Will you use frontend? ' frontend
 done
 if [[ $frontend == [Yy] ]] ; then
     repos="${repos}front"
@@ -34,7 +34,7 @@ if [[ $frontend == [Yy] ]] ; then
       frontdir=`echo $frontendrepo | rev | cut -d / -f1 | rev|cut -d . -f1`
       read -e -i "$env" -p "Please provide the branch: "  fbranch
       while  [[ $npm !=  [YyNn] ]]; do
-       read -n1 -e -i "y" -p 'Will you use npm? ' npm
+       read -n3 -e -i "y" -p 'Will you use npm? ' npm
       done
         if [[ $npm == [Yy] ]]  ; then
           installer="${installer} && sudo apt-get install -y npm nodejs && sudo npm -g install n && sudo n latest && sudo npm -g install yarn"
@@ -43,7 +43,7 @@ fi
 
 echo "----------------------------"
 while  [[ $backend !=  [YyNn] ]]; do
-read -n1 -e -i "y" -p 'Will you use backend server? ' backend
+read -n3 -e -i "y" -p 'Will you use backend server? ' backend
 done
   if [[ $backend == [Yy] ]] ; then
       repos="${repos}back"
@@ -53,20 +53,20 @@ done
            if [[ $php == [Yy] ]] ; then
               installer="${installer}&& sudo apt-get install -y php-fpm php-curl php-bcmath php-intl php-json php-mbstring php-mysql php-soap php-xml php-zip"
               while  [[ $composer !=  [YyNn] ]]; do
-                read -n1 -e -i "y" -p 'Will you use composer? ' composer
+                read -n3 -e -i "y" -p 'Will you use composer? ' composer
               done
                 if [[ "$composer" == [Yy] ]] ; then
                   installer="${installer} composer "
                 fi
           fi
         while  [[ $java !=  [YyNn] ]]; do
-          read -n1 -e -i "y" -p 'Will you use java? ' java
+          read -n3 -e -i "y" -p 'Will you use java? ' java
         done
  fi
 
   if [[ $java == [Yy] ]] ; then
     while [[ $javaversion !=  @(8|11)  ]]; do
-      read -n2 -e -i "11" -p 'Please specify which java 8/11: ' javaversion
+      read -n3 -e -i "11" -p 'Please specify which java 8/11: ' javaversion
     done
     installer="${installer} && sudo apt-get install -y openjdk-$javaversion-jdk maven"
     release=`$sshd "hostnamectl | grep Operating | sed 's/[^0-9]//g' | head -c 2"`
@@ -77,7 +77,7 @@ done
     read -e -i "prod" -p 'Please provide the spring profile: ' spring_profile
   fi
   while  [[ $rds !=  [YyNn] ]]; do
-    read -n1 -e -i "n" -p 'Will you use RDS: ' rds
+    read -n3 -e -i "n" -p 'Will you use RDS: ' rds
   done
   if [[ $rds == [Yy] ]] ; then
     read -p 'Please provide the RDS master user: ' rootuser
@@ -89,7 +89,7 @@ done
     read -p 'Please provide the RDS port: ' rdsport
   else
     while  [[ $mysql !=  [YyNn] ]]; do
-      read -n1 -e -i "y" -p 'Will you use mysql on the server? ' mysql
+      read -n3 -e -i "y" -p 'Will you use mysql on the server? ' mysql
     done
       if [[ $mysql == [Yy] ]] ; then
         installer="${installer} && sudo apt-get install -y mysql-server"
@@ -102,12 +102,12 @@ done
   read -p 'Please provide the cloning repository for backend: ' backendrepo
   backdir=`echo $backendrepo | rev | cut -d / -f1 | rev|cut -d . -f1`
   read -e -i "$env" -p "Please provide the branch: "  bbranch
-  while  [[ $backendport !=  ?(-)+([0-9] ]]; do
+  while  [[ $backendport !=  ?(-)+([0-9]) ]]; do
     read -e -i "5000" -p 'Whats the backend port? ' backendport
   done
 echo "----------------------------"
 while  [[ $cms !=  [YyNn] ]]; do
-  read -n1 -e -i "n" -p 'Will you use cms? ' cms
+  read -n3 -e -i "n" -p 'Will you use cms? ' cms
 done
   if [[ $cms == [Yy] ]] ;   then
       repos="${repos}cms"
