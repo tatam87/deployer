@@ -69,7 +69,7 @@ done
       read -n3 -e -i "11" -p 'Please specify which java 8/11: ' javaversion
     done
     installer="${installer} && sudo apt-get install -y openjdk-$javaversion-jdk maven"
-    release=`$sshd "hostnamectl | grep Operating | sed 's/[^0-9]//g' | head -c 2"`
+    release=`$sshd "hostnamectl | grep Operating | sed 's/[^0-9]//g' | head -c 2" > /dev/null 2>&1`
 
       if [[ $javaversion == "11" && $release == "16" ]]; then
         $sshd "sudo add-apt-repository ppa:linuxuprising/java && sudo apt-get update"
@@ -84,17 +84,19 @@ done
     read -sp 'Please provide the RDS master password: ' rootpasswd
     read -p 'Please provide the rdsuser you want to create: ' mysqluser
     read -sp 'Please provide the RDS user pasword you want to create: ' sqluserpass
+    echo
     read -p 'Please provide the database name: ' bdshceme
     read -p 'Please provide the RDS host url: ' rdshost
     read -p 'Please provide the RDS port: ' rdsport
   else
     while  [[ $mysql !=  [YyNn] ]]; do
-      read -n3 -e -i "y" -p 'Will you use mysql on the server? ' mysql
+      read -n3 -e -i "y" -p 'Will you use MySQL on the server? ' mysql
     done
       if [[ $mysql == [Yy] ]] ; then
         installer="${installer} && sudo apt-get install -y mysql-server"
         read -p 'Please provide sql user: ' mysqluser
         read -sp 'Please provide user password: ' sqluserpass
+        echo
         read -p 'Please provide the database name: ' bdshceme
       fi
   fi
@@ -103,7 +105,7 @@ done
   backdir=`echo $backendrepo | rev | cut -d / -f1 | rev|cut -d . -f1`
   read -e -i "$env" -p "Please provide the branch: "  bbranch
   while  [[ $backendport !=  ?(-)+([0-9]) ]]; do
-    read -e -i "5000" -p 'Whats the backend port? ' backendport
+    read -e -i "5000" -p 'What is the backend port? ' backendport
   done
 echo "----------------------------"
 while  [[ $cms !=  [YyNn] ]]; do
@@ -117,5 +119,5 @@ done
       read -e -i "$env" -p "Please provide the branch: "  cbranch
       read -p 'What is the cms alias? '  cmsalias
   fi
-
+echo "----------------------------"
 . logic.sh
