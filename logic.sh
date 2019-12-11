@@ -38,6 +38,9 @@ else
 fi
 $sshd "$installer  && sudo mkdir -p -v $ospath$pname/$env && sudo chown $remoteuser:$remoteuser -R $ospath$pname/ && sudo chmod -R 775 $ospath$pname/ && sudo certbot certonly --apache -d$domain"
 
+scp -P$sshport $domain.conf $remoteuser@$domain:~/
+$sshd "sudo mv $domain.conf /etc/apache2/sites-available/ && sudo a2ensite $domain && sudo systemctl reload apache2"
+
 if [[ $repos =~ "front" ]] ;   then
     $sshd "cd $ospath$pname/$env/ && git clone $frontendrepo && cd $frontdir && git checkout $fbranch && git config credential.helper store && git pull"
       if [[ $backend == [Yy] ]] ; then
@@ -46,8 +49,8 @@ if [[ $repos =~ "front" ]] ;   then
           $sshd "cd $ospath$pname/$env/$fbranch && cat src/config/config.js.sample | sed 's|http://localhost:8081|https://$domain|; s|dev|$env|' > src/config/config.js"
       fi
     $sshd "cd $ospath$pname/$env/$frontdir/ && sh deploy-$env.sh"
-    scp -P$sshport $domain.conf $remoteuser@$domain:~/
-    $sshd "sudo mv $domain.conf /etc/apache2/sites-available/ && sudo a2ensite $domain && sudo systemctl reload apache2"
+#    scp -P$sshport $domain.conf $remoteuser@$domain:~/
+#    $sshd "sudo mv $domain.conf /etc/apache2/sites-available/ && sudo a2ensite $domain && sudo systemctl reload apache2"
     rm $domain.conf
 fi
 
