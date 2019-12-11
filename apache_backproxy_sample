@@ -26,9 +26,12 @@
         Require all granted
         </Directory>
 
+        ProxyPassMatch ^/(api.*) http://127.0.0.1:backendport/$1
+        ProxyPassReverse ^/(api.*) http://127.0.0.1:backendport/$1
 
-        ProxyPass /api http://127.0.0.1:backendport/
-        ProxyPassReverse /api http://127.0.0.1:backendport/
+
+#        ProxyPass /api http://127.0.0.1:backendport/
+#        ProxyPassReverse /api http://127.0.0.1:backendport/
 
 
         ErrorLog ${APACHE_LOG_DIR}/domain-error.log

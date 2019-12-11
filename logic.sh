@@ -51,7 +51,6 @@ if [[ $repos =~ "front" ]] ;   then
     $sshd "cd $ospath$pname/$env/$frontdir/ && sh deploy-$env.sh"
 #    scp -P$sshport $domain.conf $remoteuser@$domain:~/
 #    $sshd "sudo mv $domain.conf /etc/apache2/sites-available/ && sudo a2ensite $domain && sudo systemctl reload apache2"
-    rm $domain.conf
 fi
 
 if [[ $repos =~ "back" ]] ; then
