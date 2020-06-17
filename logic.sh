@@ -16,9 +16,9 @@ if [ $deployment == "y" ] ;   then
 fi
 
 if [ $rds == "y" ] ; then
-  mysql -u$rootuser -p$rootpasswd -h$rdshost -p$rdsport  "<<EOF
+  mysql -u$rootuser -p$rootpasswd -h$rdshost -P$rdsport  "<<EOF
   CREATE DATABASE $bdshceme;
-  CREATE USER '$mysqluser'@'localhost' IDENTIFIED BY '$sqluserpass';
+  CREATE USER '$mysqluser'@'%' IDENTIFIED BY '$sqluserpass';
   GRANT ALL PRIVILEGES ON $bdshceme.* TO '$mysqluser'@'localhost';
   FLUSH PRIVILEGES;
   exit
@@ -26,15 +26,36 @@ if [ $rds == "y" ] ; then
 
 else
   if  [ $mysql == "y" ] ; then
-    read -sp 'Please provide the root mysql password you have or created on deployment: ' rootpasswd
-    $sshd "mysql -uroot -p${rootpasswd}  <<EOF
-    CREATE DATABASE $bdshceme;
-    CREATE USER '$mysqluser'@'localhost' IDENTIFIED BY '$sqluserpass';
-    GRANT ALL PRIVILEGES ON $bdshceme.* TO '$mysqluser'@'localhost';
-    FLUSH PRIVILEGES;
-    exit
-    EOF"
-  fi
+	read -sp 'Please provide the root mysql password you have or created on deployment: ' rootpasswd
+	$sshd "mysql -uroot -p${rootpasswd} <<EOF
+	exit
+	EOF"
+	normallogin=$?
+	$sshd "sudo mysql"
+	sudologin=$?
+
+	    if [ $normallogin -eq 0 ] ; then
+		$sshd "mysql -uroot -p$rootpasswd  <<EOF
+		CREATE DATABASE $bdshceme;
+		CREATE USER '$mysqluser'@'localhost' IDENTIFIED BY '$sqluserpass';
+		GRANT ALL PRIVILEGES ON $bdshceme.* TO '$mysqluser'@'localhost';
+		FLUSH PRIVILEGES;
+		exit
+		EOF"
+	    fi
+	    if [ $sudologin -eq 0 ] ; then
+                $sshd "sudo mysql  <<EOF
+		ALTER USER 'root'@'%' IDENTIFIED BY '$rootpasswd';
+                CREATE DATABASE $bdshceme;
+                CREATE USER '$mysqluser'@'%' IDENTIFIED BY '$sqluserpass';
+                GRANT ALL PRIVILEGES ON $bdshceme.* TO '$mysqluser'@'%';
+                FLUSH PRIVILEGES;
+                exit
+                EOF"
+          else 
+		echo "Something went wrong!"
+		fi	
+  	   fi
 fi
 $sshd "$installer  && sudo mkdir -p -v $ospath$pname/$env && sudo chown $remoteuser:$remoteuser -R $ospath$pname/ && sudo chmod -R 775 $ospath$pname/ && sudo certbot certonly --apache -d$domain"
 
