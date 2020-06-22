@@ -2,20 +2,20 @@
 path="/var/www/$pname/$env/"
 ospath="/var/www/"
 
-if [ $backend == "y" ] ;   then
+if [[ $backend -eq 0 ]] ;   then
   cat apache_backproxy_sample | sed "s|domain|$domain|g; s|frontend|$path$frontdir/dist|; s|backendport|$backendport|g; s|path|$path/$backdir|g" > $domain.conf
-    if [ $java == "y" ] ;   then
+    if [[ $java -eq 0 ]] ;   then
       cat service_sample | sed "s|project|$pname|g; s|dir|$backdir|g; s|env|$env|g; s|pname|$pname|g; s|portc|$backendport|g" > $pname-$env.service
     fi
 else
   cat apache_sample | sed "s|domain|$domain|g; s|backend|$path/$backdir|; s|path|$path$frontdir/dist|g" > $domain.conf
 fi
 
-if [ $deployment == "y" ] ;   then
+if [[ $deployment -eq 0 ]] ;   then
  $sshd "$apachios && $installer && sudo mkdir -p -v $ospath$pname/$env && sudo chown -R $remoteuser:$remoteuser $ospath$pname/ && sudo chmod -R 775 $ospath$pname/"
 fi
 
-if [ $rds == "y" ] ; then
+if [[ $rds -eq 0 ]] ; then
   mysql -u$rootuser -p$rootpasswd -h$rdshost -P$rdsport  "<<EOF
   CREATE DATABASE $bdshceme;
   CREATE USER '$mysqluser'@'%' IDENTIFIED BY '$sqluserpass';
@@ -25,8 +25,8 @@ if [ $rds == "y" ] ; then
   EOF"
 
 else
-  if  [ $mysql == "y" ] ; then
-	read -sp 'Please provide the root mysql password you have or created on deployment: ' rootpasswd
+  if  [[ $mysql -eq 0 ]] ; then
+	rootpasswd=$(whiptail --passwordbox "Please provide the root password you have or created on deployment:" 8  120 3>&1 1>&2 2>&3)
 	$sshd "mysql -uroot -p${rootpasswd} <<EOF
 	exit
 	EOF"
@@ -73,14 +73,14 @@ if [[ $repos =~ "front" ]] ;   then
 fi
 
 if [[ $repos =~ "back" ]] ; then
-    if [[ $java == "y" ]] ; then
+    if [[ $java -eq 0 ]] ; then
             $sshd "cd $ospath$pname/$env/ && git clone $backendrepo && cd $backdir && git checkout $bbranch && cat src/main/resources/application.yaml.dist | sed 's|database_name|$bdshceme|; s|database_user|$mysqluser|; s|database_password|$sqluserpass|; s|spring_profile|$spring_profile|' > src/main/resources/application.yaml"
             scp -P$sshport $pname-$env.service  $remoteuser@$domain:~/
             $sshd "sudo mv $pname-$env.service /etc/systemd/system/ && sudo systemctl daemon-reload && cd $ospath$pname/$env/$backdir && git config credential.helper store && sh deploy-$env.sh"
             rm $pname-$env.service
     fi
 
-    if [[ $php == "y" ]] ; then
+    if [[ $php -eq 0 ]] ; then
       $sshd "cd $ospath$pname/$env/ && git clone $backendrepo && cd $backdir && git checkout $bbranch && cat config/config.php.sample | sed 's|database_name|$bdshceme|; s|database_user|$mysqluser|; s|database_password|$sqluserpass|' > config/config.php"
       $sshd "cd $ospath$pname/$env/$backdir && git config credential.helper store && sh deploy-$env.sh"
 
@@ -91,3 +91,5 @@ if [[ $repos =~ "cms" ]] ; then
       $sshd "cd $ospath$pname/$env/ && git clone $cmsrepo && cd $cmsdir && git checkout $cbranch"
 fi
 rm $domain.conf
+whiptail --title "Dear $USER" --msgbox "The deployer has finshed." 8 120
+
