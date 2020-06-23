@@ -1,5 +1,5 @@
 #!/bin/bash
-whiptail --title "Hello $USER" --msgbox "Before you start confirm tha A record for your domain exists and you have ssh access ! There will be a lot of ssh conections so we will make ssh agent to handle them, please provide the ssh passphrase." 8 120
+whiptail --title "Hello $USER" --msgbox "Before you start confirm tha A record for your domain exists and you have ssh access! There will be a lot of ssh conections so we will make ssh agent to handle them, please provide the ssh passphrase." 8 120
 
 ssh-agent && ssh-add
 
@@ -14,10 +14,10 @@ env=$(whiptail --inputbox "Please provide the environment type dev/stage/prod:" 
 pname=$(whiptail --inputbox "What is the project name?" 8  120 3>&1 1>&2 2>&3)
 domain=$(whiptail --inputbox "Please provide the domain ex test.test.com." 8  120 3>&1 1>&2 2>&3)
 remoteuser=$(whiptail --inputbox "Please provide the ssh user to connect:" 8  120 3>&1 1>&2 2>&3)
-sshport=$(whiptail --inputbox "Please provide the ssh port to use ex 6776:" 8  120 3>&1 1>&2 2>&3)
+sshport=$(whiptail --inputbox "Please provide the ssh port to use ex 22:" 8  120 3>&1 1>&2 2>&3)
 sshd="ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=22}""
 deployment=$(whiptail --yesno "Is this the first time deploying on this server?" 8 120 3>&1 1>&2 2>&3 ; echo $?)
-frontend=$(whiptail --yesno "Will you use frontend?"  8 120 3>&1 1>&2 2>&3 ; echo $?) 
+frontend=$(whiptail --yesno "Will you use frontend?"  8 120 3>&1 1>&2 2>&3 ; echo $?)
 if [[ $frontend -eq 0 ]] ; then
     repos="${repos}front"
       frontendrepo=$(whiptail --inputbox "Please provide the cloning repository for frontend:	Example of repository: https://github.com/someuser/someproject.git" 10  120 3>&1 1>&2 2>&3)
@@ -37,17 +37,15 @@ backend=$(whiptail --yesno "Will you use backend?"  8 120 3>&1 1>&2 2>&3 ; echo 
            if [[ $php -eq 0 ]] ; then
               installer="${installer}&& sudo apt-get install -y php-fpm php-curl php-bcmath php-intl php-json php-mbstring php-mysql php-soap php-xml php-zip"
 	      composer=$(whiptail --yesno "Will you use composer?" 8 120 3>&1 1>&2 2>&3 ; echo $?)
-
                 if [[ "$composer" -eq 0 ]] ; then
                   installer="${installer} composer "
                 fi
            fi
-
-          java=$(whiptail --yesno "Will you use Java?" 8 120 3>&1 1>&2 2>&3 ; echo $?)
-  fi
+      java=$(whiptail --yesno "Will you use Java?" 8 120 3>&1 1>&2 2>&3 ; echo $?)
+   #fi
 
   if [[ $java -eq 0 ]] ; then
-    
+
     javaversion=$(whiptail --inputbox "Please specify which java 8/11:" 8  120 3>&1 1>&2 2>&3 ; echo $?)
     installer="${installer} && sudo apt-get install -y openjdk-$javaversion-jdk maven"
     release=`$sshd "hostnamectl | grep Operating | sed 's/[^0-9]//g' | head -c 2"`
@@ -76,19 +74,19 @@ backend=$(whiptail --yesno "Will you use backend?"  8 120 3>&1 1>&2 2>&3 ; echo 
 	sqluserpass=$(whiptail --passwordbox "Please provide the password for the user you want to create:" 8  120 3>&1 1>&2 2>&3)
 	bdshceme=$(whiptail --inputbox "Please provide the database name:" 8  120 3>&1 1>&2 2>&3)
       fi
-   
+
   backendrepo=$(whiptail --inputbox "Please provide the cloning repository for backend:   Example of repository: https://github.com/someuser/someproject.git" 10  120 3>&1 1>&2 2>&3)
   backdir=`echo $backendrepo | rev | cut -d / -f1 | rev|cut -d . -f1`
   bbranch=$(whiptail --inputbox "Please provide the branch:" 8  120 3>&1 1>&2 2>&3)
   backendport=$(whiptail --inputbox "Please provide the backend port:" 8  120 3>&1 1>&2 2>&3)
 
-cms=$(whipetail --yesno "Will you use CMS?"8 120 3>&1 1>&2 2>&3 ; echo $?)
-  if [[ $cms -eq 0 ]] ;   then
+cms=$(whipetail --yesno "Will you use CMS?" 8 120 3>&1 1>&2 2>&3 ; echo $?)
+  if [[ $cms -eq 0 ]] ; then
       repos="${repos}cms"
       cmsrepo=$(whiptail --inputbox "Please provide the cloning repository for CMS:   Example of repository: https://github.com/someuser/someproject.git" 10  120 3>&1 1>&2 2>&3)
       cmsdir=`echo $cmsrepo | rev | cut -d / -f1 | rev|cut -d . -f1`
       cbranch=$(whiptail --inputbox "Please provide the branch:" 8  120 3>&1 1>&2 2>&3)
       cmsalias=$(whiptail --inputbox "What is the alias folder on apache for cms?" 8  120 3>&1 1>&2 2>&3)
   fi
-
+fi
 . logic.sh
