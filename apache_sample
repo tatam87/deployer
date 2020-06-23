@@ -10,8 +10,7 @@
 
         DocumentRoot path
 
-        RewriteEngine on
-        SSLProxyEngine on
+
         SSLEngine On
         SSLCertificateFile  /etc/letsencrypt/live/domain/fullchain.pem
         SSLCertificateKeyFile  /etc/letsencrypt/live/domain/privkey.pem

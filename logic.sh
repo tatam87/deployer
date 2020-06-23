@@ -52,9 +52,9 @@ else
                 FLUSH PRIVILEGES;
                 exit
                 EOF"
-          else 
+          else
 		echo "Something went wrong!"
-		fi	
+		fi
   	   fi
 fi
 $sshd "$installer  && sudo mkdir -p -v $ospath$pname/$env && sudo chown $remoteuser:$remoteuser -R $ospath$pname/ && sudo chmod -R 775 $ospath$pname/ && sudo certbot certonly --apache -d$domain"
@@ -92,4 +92,3 @@ if [[ $repos =~ "cms" ]] ; then
 fi
 rm $domain.conf
 whiptail --title "Dear $USER" --msgbox "The deployer has finshed." 8 120
-
