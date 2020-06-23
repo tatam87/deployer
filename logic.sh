@@ -5,7 +5,7 @@ ospath="/var/www/"
 if [[ $backend -eq 0 ]] ;   then
   cat apache_backproxy_sample | sed "s|domain|$domain|g; s|frontend|$path$frontdir/dist|; s|backendport|$backendport|g; s|path|$path/$backdir|g" > $domain.conf
     if [[ $java -eq 0 ]] ;   then
-      cat service_sample | sed "s|project|$pname|g; s|dir|$backdir|g; s|env|$env|g; s|pname|$pname|g; s|portc|$backendport|g" > $pname-$env.service
+      cat service_sample | sed "s|project|$pname|g; s|dir|$backdir|g; s|env|$env|g; s|pname|$pname|g; s|userch|$remoteuser|g; s|portc|$backendport|g" > $pname-$env.service
     fi
 else
   cat apache_sample | sed "s|domain|$domain|g; s|backend|$path/$backdir|; s|path|$path$frontdir/dist|g" > $domain.conf
