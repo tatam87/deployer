@@ -1,4 +1,6 @@
 #!/bin/bash
+exec 2>debug.log
+
 whiptail --title "Hello $USER" --msgbox "Before you start confirm tha A record for your domain exists and you have ssh access! There will be a lot of ssh conections so we will make ssh agent to handle them, please provide the ssh passphrase." 8 120
 
 ssh-agent && ssh-add
@@ -14,7 +16,7 @@ env=$(whiptail --inputbox "Please provide the environment type dev/stage/prod:" 
 pname=$(whiptail --inputbox "What is the project name?" 8  120 3>&1 1>&2 2>&3)
 domain=$(whiptail --inputbox "Please provide the domain ex test.test.com." 8  120 3>&1 1>&2 2>&3)
 remoteuser=$(whiptail --inputbox "Please provide the ssh user to connect:" 8  120 3>&1 1>&2 2>&3)
-sshport=$(whiptail --inputbox "Please provide the ssh port to use ex 22:" 8  120 3>&1 1>&2 2>&3)
+sshport=$(whiptail --inputbox "Please provide the ssh port to use Default is 22:" 8  120 3>&1 1>&2 2>&3)
 sshd="ssh -tt "${remoteuser:=ubuntu}"@$domain -p"${sshport:=22}""
 deployment=$(whiptail --yesno "Is this the first time deploying on this server?" 8 120 3>&1 1>&2 2>&3 ; echo $?)
 frontend=$(whiptail --yesno "Will you use frontend?"  8 120 3>&1 1>&2 2>&3 ; echo $?)
@@ -80,7 +82,7 @@ backend=$(whiptail --yesno "Will you use backend?"  8 120 3>&1 1>&2 2>&3 ; echo 
   bbranch=$(whiptail --inputbox "Please provide the branch:" 8  120 3>&1 1>&2 2>&3)
   backendport=$(whiptail --inputbox "Please provide the backend port:" 8  120 3>&1 1>&2 2>&3)
 
-cms=$(whipetail --yesno "Will you use CMS?" 8 120 3>&1 1>&2 2>&3 ; echo $?)
+  cms=$(whipetail --yesno "Will you use CMS?" 8 120 3>&1 1>&2 2>&3 ; echo $?)
   if [[ $cms -eq 0 ]] ; then
       repos="${repos}cms"
       cmsrepo=$(whiptail --inputbox "Please provide the cloning repository for CMS:   Example of repository: https://github.com/someuser/someproject.git" 10  120 3>&1 1>&2 2>&3)
