@@ -16,10 +16,10 @@ if [[ $deployment -eq 0 ]] ;   then
 fi
 
 if [[ $rds -eq 0 ]] ; then
-  mysql -u$rootuser -p$rootpasswd -h$rdshost -P$rdsport  "<<EOF
+  mysql -u$rootuser -p$rootpasswd -h$rdshost -P $rdsport  "<<EOF
   CREATE DATABASE $bdshceme;
   CREATE USER '$mysqluser'@'%' IDENTIFIED BY '$sqluserpass';
-  GRANT ALL PRIVILEGES ON $bdshceme.* TO '$mysqluser'@'localhost';
+  GRANT ALL PRIVILEGES ON $bdshceme.* TO '$mysqluser'@'%';
   FLUSH PRIVILEGES;
   exit
   EOF"
@@ -37,8 +37,8 @@ else
 	    if [ $normallogin -eq 0 ] ; then
 		$sshd "mysql -uroot -p$rootpasswd  <<EOF
 		CREATE DATABASE $bdshceme;
-		CREATE USER '$mysqluser'@'localhost' IDENTIFIED BY '$sqluserpass';
-		GRANT ALL PRIVILEGES ON $bdshceme.* TO '$mysqluser'@'localhost';
+		CREATE USER '$mysqluser'@'%' IDENTIFIED BY '$sqluserpass';
+		GRANT ALL PRIVILEGES ON $bdshceme.* TO '$mysqluser'@'%';
 		FLUSH PRIVILEGES;
 		exit
 		EOF"
