@@ -1,5 +1,4 @@
 #!/bin/bash
-exec 2>debug.log
 
 whiptail --title "Hello $USER" --msgbox "Before you start confirm tha A record for your domain exists and you have ssh access! There will be a lot of ssh conections so we will make ssh agent to handle them, please provide the ssh passphrase." 8 120
 
