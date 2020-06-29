@@ -81,7 +81,7 @@ backend=$(whiptail --yesno "Will you use backend?"  8 120 3>&1 1>&2 2>&3 ; echo 
   bbranch=$(whiptail --inputbox "Please provide the branch:" 8  120 3>&1 1>&2 2>&3)
   backendport=$(whiptail --inputbox "Please provide the backend port:" 8  120 3>&1 1>&2 2>&3)
 
-  cms=$(whipetail --yesno "Will you use CMS?" 8 120 3>&1 1>&2 2>&3 ; echo $?)
+  cms=$(whiptail --yesno "Will you use CMS?" 8 120 3>&1 1>&2 2>&3 ; echo $?)
   if [[ $cms -eq 0 ]] ; then
       repos="${repos}cms"
       cmsrepo=$(whiptail --inputbox "Please provide the cloning repository for CMS:   Example of repository: https://github.com/someuser/someproject.git" 10  120 3>&1 1>&2 2>&3)
