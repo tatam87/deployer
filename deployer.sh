@@ -1,6 +1,6 @@
 #!/bin/bash
-whiptail --title  "Hello $USER" --msgbox "In case you are stuck excecute: kill -9 $$" 8 120
-whiptail --title "Hello $USER" --msgbox "Before you start confirm tha A record for your domain exists and you have ssh access! There will be a lot of ssh conections so we will make ssh agent to handle them, please provide the ssh passphrase." 8 120
+whiptail --title "Hello $USER" --msgbox "In case you are stuck excecute: kill -9 $$" 8 120
+whiptail --title "Get Ready" --msgbox "Before you start confirm tha A record for your domain exists and you have ssh access! There will be a lot of ssh conections so we will make ssh agent to handle them, please provide the ssh passphrase." 8 120
 
 ssh-agent && ssh-add
 
